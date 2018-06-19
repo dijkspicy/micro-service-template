@@ -10,6 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>micro-service-template-deployment</artifactId>
-    <name>Deployment</name>
+    <name>Micro-Service-Template Deployment</name>
 
 </project>

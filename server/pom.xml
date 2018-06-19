@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>micro-service-template-server</artifactId>
-    <name>Server</name>
+    <name>Micro-Service-Template Server</name>
 
     <dependencies>
         <dependency>
@@ -36,6 +36,12 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.37</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
