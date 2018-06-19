@@ -7,29 +7,46 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * queeng
  *
- * @param <T> 一定是使用{@link Response}类进行返回，如果有特殊需求，请继承response
+ * @param <T> 一定是使用{@link ServiceResponse}类进行返回，如果有特殊需求，请继承response
  * @author dijkspicy
  * @date 2018/6/1
  */
 public abstract class BaseHandler<T> {
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseHandler.class);
+    private static final Function<Type, Class> GENERIC_MAPPER = type -> {
+        ParameterizedType parameterizedType = null;
+        while (type != null) {
+            if (type instanceof ParameterizedType && BaseHandler.class == ((ParameterizedType) type).getRawType()) {
+                parameterizedType = (ParameterizedType) type;
+                break;
+            }
+            if (type instanceof Class) {
+                type = ((Class) type).getGenericSuperclass();
+            }
+        }
+
+        if (parameterizedType != null && parameterizedType.getActualTypeArguments().length != 0) {
+            Type t = parameterizedType.getActualTypeArguments()[0];
+            if (t instanceof Class) {
+                return (Class) t;
+            }
+        }
+        return ServiceResponse.class;
+    };
     private final Class<T> responseType;
 
     /**
-     * 会自动获取泛型中的类，如果没有，则使用{@link Response}
+     * 会自动获取泛型中的类，如果没有，则使用{@link ServiceResponse}
      */
     @SuppressWarnings("unchecked")
     protected BaseHandler() {
-        ParameterizedType type = this.getType(this.getClass());
-        this.responseType = (Class<T>) (type != null && type.getActualTypeArguments().length != 0
-                ? type.getActualTypeArguments()[0]
-                : Response.class);
+        this.responseType = GENERIC_MAPPER.apply(this.getClass());
     }
 
     /**
@@ -39,13 +56,13 @@ public abstract class BaseHandler<T> {
      * @return 具体的返回
      */
     public final T execute(HttpContext context) {
-        T out = null;
-        ServiceException exp = null;
-        try (Timer ignored = new Timer(this)) {
+        ServiceException exp;
+        try (final AutoCloseable ignored = Timer.start(this)) {
             this.doPre(context);
-            out = this.doMainLogic(context);
+            T out = this.doMainLogic(context);
             this.writeSuccessMessage();
             context.setResponseStatus(HttpURLConnection.HTTP_OK);
+            return out;
         } catch (ServiceException e) {
             exp = e;
         } catch (Exception e) {
@@ -56,16 +73,19 @@ public abstract class BaseHandler<T> {
             this.doPost();
         }
 
-        if (exp != null) {
-            context.setResponseStatus(exp.getHttpCode());
-            this.writeFailureMessage(exp);
-            out = this.getResponseWithException(context, exp);
+        context.setResponseStatus(exp.getHttpCode());
+        this.writeFailureMessage(exp);
+        T out = this.getResponseWithException(context, exp);
 
-            LOGGER.error("\r\n-------------------ERROR-----------------");
-            LOGGER.error("\r\n" + this + "\r\n" + exp.getMessage(), exp);
-            LOGGER.error("\r\n-----------------------------------------");
-        }
+        LOGGER.error("\r\n-------------------ERROR-----------------");
+        LOGGER.error("\r\n" + this, exp);
+        LOGGER.error("\r\n-----------------------------------------");
         return out;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.getClass().getSimpleName() + "<" + this.responseType.getSimpleName() + ">@" + this.hashCode() + "]";
     }
 
     /**
@@ -122,57 +142,20 @@ public abstract class BaseHandler<T> {
     }
 
     private T getResponseWithException(HttpContext context, ServiceException exp) {
-        T out = Optional.ofNullable(this.doFailureLogic(context, exp))
-                .orElseGet(this::getDefaultResponse);
-        if (out instanceof Response) {
-            ((Response) out)
-                    .setResult("ERROR")
-                    .setMessage(exp.getId() + ": " + exp.getMessage());
+        T out = Optional.ofNullable(this.doFailureLogic(context, exp)).orElseGet(() -> {
+            try {
+                return this.responseType.newInstance();
+            } catch (Exception e) {
+                LOGGER.info("Failed to new instance of " + this.responseType.getSimpleName());
+            }
+            return null;
+        });
+        if (out instanceof ServiceResponse) {
+            ((ServiceResponse) out)
+                    .setRetCode(exp.getRetCode())
+                    .setRetInfo(exp.getRetInfo());
         }
         return out;
-    }
-
-    private ParameterizedType getType(Type type) {
-        return type instanceof ParameterizedType && BaseHandler.class == ((ParameterizedType) type).getRawType()
-                ? (ParameterizedType) type
-                : type instanceof Class
-                ? this.getType(((Class) type).getGenericSuperclass())
-                : null;
-    }
-
-    private T getDefaultResponse() {
-        try {
-            return this.responseType.newInstance();
-        } catch (Exception e) {
-            LOGGER.info("Failed to new instance of " + this.responseType.getSimpleName());
-        }
-        return null;
-    }
-
-    /**
-     * response
-     */
-    public static class Response {
-        private String result = "OK";
-        private String message;
-
-        public String getResult() {
-            return result;
-        }
-
-        public Response setResult(String result) {
-            this.result = result;
-            return this;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public Response setMessage(String message) {
-            this.message = message;
-            return this;
-        }
     }
 }
 

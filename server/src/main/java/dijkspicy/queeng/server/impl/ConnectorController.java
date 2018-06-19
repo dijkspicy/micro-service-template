@@ -1,14 +1,15 @@
 package dijkspicy.queeng.server.impl;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import dijkspicy.queeng.server.dispatch.HttpContext;
 import dijkspicy.queeng.server.dispatch.connector.ConnectorHandler;
+import dijkspicy.queeng.server.dispatch.connector.ConnectorTestHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -26,4 +27,9 @@ public class ConnectorController {
         return new ConnectorHandler(type).execute(new HttpContext(req, resp));
     }
 
+    @RequestMapping("/jdbc/{type}/test")
+    @PostMapping
+    public Object requestTest(HttpServletRequest req, HttpServletResponse resp, @PathVariable(value = "type") String type) {
+        return new ConnectorTestHandler(type).execute(new HttpContext(req, resp));
+    }
 }

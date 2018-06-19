@@ -1,5 +1,6 @@
 package dijkspicy.queeng.server.proxy.http;
 
+import dijkspicy.queeng.server.common.Timer;
 import org.apache.http.HttpHost;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -13,7 +14,10 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.*;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +100,10 @@ public class HttpInvoker {
         return callback.apply(out);
     }
 
+    public <T> T send(Function<byte[], T> callback) {
+        return this.send(null, callback);
+    }
+
     public byte[] send(byte[] request) {
         this.initHost();
 
@@ -113,12 +121,13 @@ public class HttpInvoker {
         HttpUriRequest post = this.genRequest(request);
 
         while (true) {
-            try (CloseableHttpResponse response = this.execute(post, context)) {
+            try (final CloseableHttpResponse response = this.execute(post, context);
+                 final AutoCloseable ignored = Timer.start(this)) {
                 final int statusCode = response.getStatusLine().getStatusCode();
                 if (isSuccess(statusCode) || isServerError(statusCode)) {
                     return EntityUtils.toByteArray(response.getEntity());
                 } else if (isUnavailable(statusCode)) {
-                    LOGGER.debug("Failed to connect to server (HTTP/503), retrying");
+                    LOGGER.debug("Failed to connect wrap server (HTTP/503), retrying");
                     continue;
                 }
 
@@ -137,6 +146,10 @@ public class HttpInvoker {
 
     }
 
+    public byte[] send() {
+        return this.send((byte[]) null);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(httpMethod, uri);
@@ -152,6 +165,11 @@ public class HttpInvoker {
         }
         HttpInvoker that = (HttpInvoker) o;
         return httpMethod == that.httpMethod && Objects.equals(uri, that.uri);
+    }
+
+    @Override
+    public String toString() {
+        return this.httpMethod + " " + this.uri;
     }
 
     private static boolean isUnavailable(int statusCode) {

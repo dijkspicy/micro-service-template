@@ -1,14 +1,9 @@
 package dijkspicy.queeng.server.dispatch.connector;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dijkspicy.queeng.server.dispatch.BaseHandler;
 import dijkspicy.queeng.server.dispatch.HttpContext;
 import dijkspicy.queeng.server.dispatch.ServiceException;
-import org.apache.calcite.avatica.metrics.noop.NoopMetricsSystem;
-import org.apache.calcite.avatica.remote.Handler;
-import org.apache.calcite.avatica.remote.JsonHandler;
-import org.apache.calcite.avatica.remote.Service;
+import dijkspicy.queeng.server.dispatch.ServiceResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,20 +17,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * queeng
  *
  * @author dijkspicy
- * @date 2018/6/3
+ * @date 2018/6/18
  */
-public class ConnectorHandler extends BaseHandler<String> {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public class ConnectorTestHandler extends BaseHandler {
     private final String type;
     private String data;
 
-    public ConnectorHandler(String type) {
+    public ConnectorTestHandler(String type) {
         this.type = type;
-    }
-
-    @Override
-    public String toString() {
-        return "JDBC Connector of " + this.type + " with " + this.data;
     }
 
     @Override
@@ -56,23 +45,15 @@ public class ConnectorHandler extends BaseHandler<String> {
     }
 
     @Override
-    protected String doMainLogic(HttpContext context) throws ServiceException {
-        Service service;
+    protected Object doMainLogic(HttpContext context) throws ServiceException {
         switch (this.type.toUpperCase(Locale.ENGLISH)) {
             case "AQL":
-                service = new ConnectorAQLService();
                 break;
             case "TQL":
+                break;
             default:
                 throw new ServiceException("Only support AQL/TQL connector type: " + this.type);
         }
-
-        JsonHandler jsonHandler = new JsonHandler(service, NoopMetricsSystem.getInstance());
-        Handler.HandlerResponse<String> response = jsonHandler.apply(this.data);
-        try {
-            return MAPPER.writeValueAsString(response);
-        } catch (JsonProcessingException e) {
-            throw new ServiceException("Failed to convert response wrap json string", e);
-        }
+        return new ServiceResponse();
     }
 }

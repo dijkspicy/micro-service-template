@@ -18,7 +18,7 @@ public final class Proxy {
         try {
             return INJECTOR.getInstance(proxyClass);
         } catch (Exception e) {
-            throw new RuntimeException("You forgot register proxy: " + proxyClass.getSimpleName(), e);
+            throw new ProxyException("You forgot register proxy: " + proxyClass.getSimpleName(), e);
         }
     }
 }

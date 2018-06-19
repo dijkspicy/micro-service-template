@@ -1,58 +1,44 @@
 package dijkspicy.queeng.server.dispatch;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * queeng
  *
  * @author dijkspicy
- * @date 2018/6/1
+ * @date 2018/6/18
  */
-public class ServiceException extends Exception {
-    private static final long serialVersionUID = 2600476263853583342L;
-    private final String id;
-    private final int httpCode;
+public class ServiceException extends RuntimeException implements Returnable {
+    private static final long serialVersionUID = -1662594400955029784L;
+    private final Ret ret;
 
     public ServiceException(String msg) {
-        this(msg, (Throwable) null);
+        this(INTERNAL_SERVER_ERROR, msg);
     }
 
-    public ServiceException(String msg, Throwable throwable) {
-        this("SystemError", msg, throwable);
+    public ServiceException(String msg, Throwable e) {
+        this(INTERNAL_SERVER_ERROR, msg, e);
     }
 
-    public ServiceException(String id, String msg) {
-        this(id, 500, msg);
+    public ServiceException(Ret ret, String msg) {
+        super(msg);
+        this.ret = ret;
     }
 
-    public ServiceException(String id, String msg, Throwable throwable) {
-        this(id, 500, msg, throwable);
+    public ServiceException(Ret ret, String msg, Throwable e) {
+        super(msg, e);
+        this.ret = ret;
     }
 
-    protected ServiceException(String id, int httpCode, String msg) {
-        this(id, httpCode, msg, null);
+    public final int getHttpCode() {
+        return this.ret.httpCode;
     }
 
-    protected ServiceException(String id, int httpCode, String msg, Throwable throwable) {
-        super(msg, throwable);
-        this.id = id;
-        this.httpCode = httpCode;
-    }
-
-    @JsonProperty("id")
-    public String getId() {
-        return id;
-    }
-
-    @JsonIgnore
-    public int getHttpCode() {
-        return httpCode;
-    }
-
-    @JsonProperty("message")
     @Override
-    public String getMessage() {
-        return this.id + (super.getMessage() == null ? "" : ": " + super.getMessage());
+    public final int getRetCode() {
+        return this.ret.retCode;
+    }
+
+    @Override
+    public final String getRetInfo() {
+        return "[" + this.ret.retInfo + "] " + this.getMessage();
     }
 }
