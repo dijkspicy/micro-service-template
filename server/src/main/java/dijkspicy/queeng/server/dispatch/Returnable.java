@@ -1,7 +1,7 @@
 package dijkspicy.queeng.server.dispatch;
 
 /**
- * queeng
+ * Returnable
  *
  * @author dijkspicy
  * @date 2018/6/18
@@ -13,8 +13,18 @@ public interface Returnable {
     Ret INTERNAL_SERVER_ERROR = new Ret(500, -2, "Internal Server Error");
     Ret PROXY_ERROR = new Ret(500, 2003, "Proxy Error");
 
+    /**
+     * ret code
+     *
+     * @return ret code
+     */
     int getRetCode();
 
+    /**
+     * overview of this ret code
+     *
+     * @return ret info
+     */
     String getRetInfo();
 
     final class Ret {

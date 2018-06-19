@@ -1,31 +1,41 @@
 package dijkspicy.queeng.server.dispatch.connector;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Locale;
+
 import dijkspicy.queeng.server.dispatch.BaseHandler;
 import dijkspicy.queeng.server.dispatch.HttpContext;
 import dijkspicy.queeng.server.dispatch.ServiceException;
-import org.apache.calcite.avatica.metrics.noop.NoopMetricsSystem;
-import org.apache.calcite.avatica.remote.Handler;
-import org.apache.calcite.avatica.remote.JsonHandler;
+import org.apache.calcite.avatica.remote.JsonService;
 import org.apache.calcite.avatica.remote.Service;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Locale;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * queeng
+ * ConnectorHandler
  *
  * @author dijkspicy
- * @date 2018/6/3
+ * @date 2018/6/6
  */
 public class ConnectorHandler extends BaseHandler<String> {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final Method ACCEPT_METHOD;
+
+    static {
+        Method temp = null;
+        try {
+            temp = Service.Request.class.getDeclaredMethod("accept", Service.class);
+            temp.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            LOGGER.error("Failed to find accept method for request");
+        }
+        ACCEPT_METHOD = temp;
+    }
+
     private final String type;
     private String data;
 
@@ -57,22 +67,31 @@ public class ConnectorHandler extends BaseHandler<String> {
 
     @Override
     protected String doMainLogic(HttpContext context) throws ServiceException {
-        Service service;
+        Connector connector;
         switch (this.type.toUpperCase(Locale.ENGLISH)) {
             case "AQL":
-                service = new ConnectorAQLService();
+                connector = Connector.AQL;
                 break;
             case "TQL":
+                connector = Connector.TQL;
+                break;
             default:
                 throw new ServiceException("Only support AQL/TQL connector type: " + this.type);
         }
 
-        JsonHandler jsonHandler = new JsonHandler(service, NoopMetricsSystem.getInstance());
-        Handler.HandlerResponse<String> response = jsonHandler.apply(this.data);
+        Service service = connector.connect();
+        return this.apply(service);
+    }
+
+    private String apply(Service service) throws ServiceException {
         try {
-            return MAPPER.writeValueAsString(response);
-        } catch (JsonProcessingException e) {
-            throw new ServiceException("Failed to convert response wrap json string", e);
+            Service.Request request = JsonService.MAPPER.readValue(this.data, Service.Request.class);
+            Object response = ACCEPT_METHOD.invoke(request, service);
+            return JsonService.MAPPER.writeValueAsString(response);
+        } catch (IOException e) {
+            throw new ServiceException("Got an illegal request message", e);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new ServiceException("Failed to accept service: " + e.getMessage(), e);
         }
     }
 }

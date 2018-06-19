@@ -1,17 +1,17 @@
 package dijkspicy.queeng.server.dispatch;
 
-import dijkspicy.queeng.server.common.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.util.Optional;
 import java.util.function.Function;
 
+import dijkspicy.queeng.server.common.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * queeng
+ * BaseHandler<T>
  *
  * @param <T> 一定是使用{@link ServiceResponse}类进行返回，如果有特殊需求，请继承response
  * @author dijkspicy

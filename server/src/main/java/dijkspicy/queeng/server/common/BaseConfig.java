@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * dijkspicy-commons
+ * BaseConfig
  *
  * @author dijkspicy
  * @date 2018/5/25

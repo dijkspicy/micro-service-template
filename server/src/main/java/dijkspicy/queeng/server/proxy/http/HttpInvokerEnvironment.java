@@ -1,13 +1,5 @@
 package dijkspicy.queeng.server.proxy.http;
 
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,14 +8,21 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Optional;
 
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+
 /**
- * queeng
+ * HttpInvokerEnvironment
  *
  * @author dijkspicy
  * @date 2018/5/28
  */
 public class HttpInvokerEnvironment {
-    // Some basic exposed configurations
     private static final String MAX_POOLED_CONNECTION_PER_ROUTE_KEY = "odae.queeng.pooled.connections.per.route";
     private static final String MAX_POOLED_CONNECTION_PER_ROUTE_DEFAULT = "25";
     private static final String MAX_POOLED_CONNECTIONS_KEY = "odae.queeng.pooled.connections.max";

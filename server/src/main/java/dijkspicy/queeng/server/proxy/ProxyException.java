@@ -3,7 +3,7 @@ package dijkspicy.queeng.server.proxy;
 import dijkspicy.queeng.server.dispatch.ServiceException;
 
 /**
- * ODAEQueryEngineService
+ * ProxyException
  *
  * @author dijkspicy
  * @date 2018/6/8

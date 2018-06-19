@@ -4,7 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 /**
- * queeng
+ * Proxy
  *
  * @author dijkspicy
  * @date 2018/6/8

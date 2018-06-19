@@ -1,5 +1,13 @@
 package dijkspicy.queeng.server.proxy.http;
 
+import java.io.IOException;
+import java.net.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.function.Function;
+
 import dijkspicy.queeng.server.common.Timer;
 import org.apache.http.HttpHost;
 import org.apache.http.NoHttpResponseException;
@@ -22,16 +30,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.*;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
-import java.util.function.Function;
-
 /**
- * queeng
+ * HttpInvoker
  *
  * @author dijkspicy
  * @date 2018/5/28
@@ -39,16 +39,14 @@ import java.util.function.Function;
 public class HttpInvoker {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpInvoker.class);
     private final CloseableHttpClient httpClient;
-    // params
-    private HttpMethod httpMethod;
     private String url;
     private Map<String, String> headers;
     private Map<String, String> query;
     private CredentialsProvider credentialsProvider;
     private Lookup<AuthSchemeProvider> authRegistry;
     private AuthCache authCache;
-    // host
     private HttpHost host;
+    private String method;
     private URI uri;
 
     public HttpInvoker() {
@@ -77,8 +75,7 @@ public class HttpInvoker {
         return this;
     }
 
-    public HttpInvoker invoke(HttpMethod httpMethod, String url) {
-        this.httpMethod = httpMethod;
+    public HttpInvoker invoke(String url) {
         this.url = url;
         this.resetHost();
         return this;
@@ -95,16 +92,93 @@ public class HttpInvoker {
         return this;
     }
 
-    public <T> T send(byte[] request, Function<byte[], T> callback) {
-        byte[] out = this.send(request);
-        return callback.apply(out);
+    public byte[] post(byte[] request) {
+        return this.post(request, out -> out);
     }
 
-    public <T> T send(Function<byte[], T> callback) {
-        return this.send(null, callback);
+    public <T> T post(byte[] request, Function<byte[], T> callback) {
+        this.method = HttpPost.METHOD_NAME;
+        byte[] response = this.send(request);
+        return callback.apply(response);
     }
 
-    public byte[] send(byte[] request) {
+    public byte[] put(byte[] request) {
+        return this.put(request, out -> out);
+    }
+
+    public <T> T put(byte[] request, Function<byte[], T> callback) {
+        this.method = HttpPut.METHOD_NAME;
+        byte[] response = this.send(request);
+        return callback.apply(response);
+    }
+
+    public byte[] patch(byte[] request) {
+        return this.patch(request, out -> out);
+    }
+
+    public <T> T patch(byte[] request, Function<byte[], T> callback) {
+        this.method = HttpPatch.METHOD_NAME;
+        byte[] response = this.send(request);
+        return callback.apply(response);
+    }
+
+    public byte[] delete() {
+        return this.delete(out -> out);
+    }
+
+    public <T> T delete(Function<byte[], T> callback) {
+        this.method = HttpDelete.METHOD_NAME;
+        byte[] response = this.send(null);
+        return callback.apply(response);
+    }
+
+    public byte[] get() {
+        return this.get(out -> out);
+    }
+
+    public <T> T get(Function<byte[], T> callback) {
+        this.method = HttpGet.METHOD_NAME;
+        byte[] response = this.send(null);
+        return callback.apply(response);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        HttpInvoker that = (HttpInvoker) o;
+        return Objects.equals(method, that.method) &&
+                Objects.equals(url, that.url);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(method, url);
+    }
+
+    @Override
+    public String toString() {
+        return this.method + " " + this.url;
+    }
+
+    private static boolean isUnavailable(int statusCode) {
+        return statusCode == HttpURLConnection.HTTP_UNAVAILABLE;
+    }
+
+    private static boolean isServerError(int statusCode) {
+        return statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR;
+    }
+
+    private static boolean isSuccess(int statusCode) {
+        return 200 <= statusCode && statusCode <= 299;
+    }
+
+    private byte[] send(byte[] request) {
         this.initHost();
 
         HttpClientContext context = HttpClientContext.create();
@@ -118,10 +192,10 @@ public class HttpInvoker {
         }
 
         // http request
-        HttpUriRequest post = this.genRequest(request);
+        HttpUriRequest httpUriRequest = this.genRequest(request);
 
         while (true) {
-            try (final CloseableHttpResponse response = this.execute(post, context);
+            try (final CloseableHttpResponse response = this.execute(httpUriRequest, context);
                  final AutoCloseable ignored = Timer.start(this)) {
                 final int statusCode = response.getStatusLine().getStatusCode();
                 if (isSuccess(statusCode) || isServerError(statusCode)) {
@@ -144,44 +218,6 @@ public class HttpInvoker {
             }
         }
 
-    }
-
-    public byte[] send() {
-        return this.send((byte[]) null);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(httpMethod, uri);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        HttpInvoker that = (HttpInvoker) o;
-        return httpMethod == that.httpMethod && Objects.equals(uri, that.uri);
-    }
-
-    @Override
-    public String toString() {
-        return this.httpMethod + " " + this.uri;
-    }
-
-    private static boolean isUnavailable(int statusCode) {
-        return statusCode == HttpURLConnection.HTTP_UNAVAILABLE;
-    }
-
-    private static boolean isServerError(int statusCode) {
-        return statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR;
-    }
-
-    private static boolean isSuccess(int statusCode) {
-        return 200 <= statusCode && statusCode <= 299;
     }
 
     private void resetHost() {
@@ -207,30 +243,30 @@ public class HttpInvoker {
 
     private HttpUriRequest genRequest(byte[] rawBody) {
         HttpUriRequest request;
-        switch (this.httpMethod) {
-            case POST:
+        switch (this.method) {
+            case HttpPost.METHOD_NAME:
                 HttpPost httpPost = new HttpPost(this.uri);
                 httpPost.setEntity(new ByteArrayEntity(rawBody));
                 request = httpPost;
                 break;
-            case DELETE:
+            case HttpDelete.METHOD_NAME:
                 request = new HttpDelete(this.uri);
                 break;
-            case PUT:
+            case HttpPut.METHOD_NAME:
                 HttpPut httpPut = new HttpPut(this.uri);
                 httpPut.setEntity(new ByteArrayEntity(rawBody));
                 request = httpPut;
                 break;
-            case GET:
+            case HttpGet.METHOD_NAME:
                 request = new HttpGet(this.uri);
                 break;
-            case PATCH:
+            case HttpPatch.METHOD_NAME:
                 HttpPatch httpPatch = new HttpPatch(this.uri);
                 httpPatch.setEntity(new ByteArrayEntity(rawBody));
                 request = httpPatch;
                 break;
             default:
-                throw new RuntimeException("Invalid http method: " + this.httpMethod);
+                throw new RuntimeException("Invalid http method: " + this.method);
         }
         Optional.ofNullable(this.headers).ifPresent(it -> it.forEach(request::setHeader));
         return request;

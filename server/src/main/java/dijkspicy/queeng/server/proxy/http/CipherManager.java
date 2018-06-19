@@ -2,7 +2,7 @@ package dijkspicy.queeng.server.proxy.http;
 
 
 /**
- * queeng
+ * CipherManager
  *
  * @author dijkspicy
  * @date 2018/5/28

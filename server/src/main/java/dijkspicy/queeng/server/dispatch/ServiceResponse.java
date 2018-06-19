@@ -1,7 +1,7 @@
 package dijkspicy.queeng.server.dispatch;
 
 /**
- * queeng
+ * ServiceResponse
  *
  * @author dijkspicy
  * @date 2018/6/18

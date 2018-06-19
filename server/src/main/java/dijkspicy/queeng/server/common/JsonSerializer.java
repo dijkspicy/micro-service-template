@@ -1,13 +1,5 @@
 package dijkspicy.queeng.server.common;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -17,8 +9,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * queeng
+ * JsonSerializer
  *
  * @author dijkspicy
  * @date 2018/6/17
@@ -33,20 +33,49 @@ public interface JsonSerializer {
             .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    static <R> R deserialize(String s, Class<R> clazz) throws IOException {
-        Optional.ofNullable(s).orElseThrow(() -> new IOException("Null value for " + clazz.getSimpleName()));
-        return MAPPER.readValue(s, clazz);
+    /**
+     * 将指定java类从消息中反序列化出来
+     *
+     * @param message 消息
+     * @param clazz   指定java类
+     * @param <R>     指定java类
+     * @return 指定java类对象
+     * @throws IOException 反序列化失败
+     */
+    static <R> R deserialize(String message, Class<R> clazz) throws IOException {
+        Optional.ofNullable(message).orElseThrow(() -> new IOException("Null value for " + clazz.getSimpleName()));
+        return MAPPER.readValue(message, clazz);
     }
 
+    /**
+     * 将指定java对象序列化成字符串
+     *
+     * @param javaObj 指定java对象
+     * @return 序列化后的字符串
+     * @throws IOException 序列化失败
+     */
     static String serialize(Object javaObj) throws IOException {
         Optional.ofNullable(javaObj).orElseThrow(() -> new IOException("Null value"));
         return MAPPER.writeValueAsString(javaObj);
     }
 
+    /**
+     * 将当前对象序列化为字符串
+     *
+     * @return 序列化后的字符串
+     * @throws IOException 序列化失败
+     */
     default String serialize() throws IOException {
         return serialize(this);
     }
 
+    /**
+     * 将当前对象用被序列化为字符串的对象覆盖
+     *
+     * @param message 某对象被序列化之后的字符串
+     * @return 当前对象
+     * @throws IOException 反序列化失败
+     */
     default JsonSerializer deserialize(String message) throws IOException {
         final BiFunction<Class<?>, List<Field>, List<Field>> fieldsGetter = (clazz, fields) -> {
             while (clazz != null) {
