@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * @author dijkspicy
  * @date 2018/6/8
  */
-public interface Timer {
+public interface Timer extends AutoCloseable {
     Logger LOGGER = LoggerFactory.getLogger(Timer.class);
 
     /**
@@ -21,7 +21,7 @@ public interface Timer {
      * @param target target
      * @return timer
      */
-    static AutoCloseable start(Object target) {
+    static Timer start(Object target) {
         LocalDateTime start = LocalDateTime.now();
         LOGGER.info("It starts: {}", target);
         return () -> {
@@ -29,4 +29,7 @@ public interface Timer {
             LOGGER.info("It takes {} ms: {}", millis, target);
         };
     }
+
+    @Override
+    void close();
 }
