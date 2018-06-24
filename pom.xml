@@ -8,6 +8,7 @@
         <module>client</module>
         <module>server</module>
         <module>release</module>
+        <module>test</module>
     </modules>
     <packaging>pom</packaging>
     <name>Micro-Service-Template</name>
@@ -47,6 +48,23 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>dijkspicy.micro-service-template</groupId>
+                <artifactId>micro-service-template-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dijkspicy.micro-service-template</groupId>
+                <artifactId>micro-service-template-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dijkspicy.micro-service-template</groupId>
+                <artifactId>micro-service-template-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-parent</artifactId>

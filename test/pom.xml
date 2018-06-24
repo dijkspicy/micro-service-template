@@ -9,8 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>micro-service-template-release</artifactId>
-    <name>Micro-Service-Template Release</name>
-    <packaging>pom</packaging>
+    <artifactId>micro-service-template-local-test</artifactId>
+
 
 </project>

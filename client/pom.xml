@@ -12,4 +12,11 @@
     <artifactId>micro-service-template-client</artifactId>
     <name>Micro-Service-Template Client</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>dijkspicy.micro-service-template</groupId>
+            <artifactId>micro-service-template-api</artifactId>
+            <version>${pro}</version>
+        </dependency>
+    </dependencies>
 </project>
