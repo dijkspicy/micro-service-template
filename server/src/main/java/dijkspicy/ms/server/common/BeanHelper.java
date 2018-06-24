@@ -1,13 +1,13 @@
 package dijkspicy.ms.server.common;
 
-import java.util.Optional;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * BeanHelper
@@ -17,6 +17,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class BeanHelper implements ApplicationContextAware {
+
+    public static BeanHelper getInstance() {
+        return Holder.INSTANCE;
+    }
 
     public <T> T getBean(Class<T> beanClazz) {
         try {
@@ -34,6 +38,7 @@ public class BeanHelper implements ApplicationContextAware {
     }
 
     private static class Holder {
+        static final BeanHelper INSTANCE = new BeanHelper();
         static ApplicationContext applicationContext;
     }
 }

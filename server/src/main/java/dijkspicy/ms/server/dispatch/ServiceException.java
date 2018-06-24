@@ -7,6 +7,7 @@ package dijkspicy.ms.server.dispatch;
  * @date 2018/6/18
  */
 public class ServiceException extends RuntimeException implements Returnable {
+
     private static final long serialVersionUID = -1662594400955029784L;
     private final Ret ret;
 

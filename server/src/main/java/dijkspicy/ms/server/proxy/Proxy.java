@@ -2,6 +2,7 @@ package dijkspicy.ms.server.proxy;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import dijkspicy.ms.server.proxy.impl.XXProxyImpl;
 
 /**
  * Proxy
@@ -9,9 +10,9 @@ import com.google.inject.Injector;
  * @author dijkspicy
  * @date 2018/6/8
  */
-public final class Proxy {
-    private static final Injector INJECTOR = Guice.createInjector(binder -> {
-
+public interface Proxy {
+     static final Injector INJECTOR = Guice.createInjector(binder -> {
+        binder.bind(XXProxy.class).to(XXProxyImpl.class).asEagerSingleton();
     });
 
     public static <T> T getInstance(Class<T> proxyClass) {

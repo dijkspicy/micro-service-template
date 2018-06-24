@@ -1,14 +1,14 @@
 package dijkspicy.ms.server.dispatch;
 
+import dijkspicy.ms.server.common.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.util.Optional;
 import java.util.function.Function;
-
-import dijkspicy.ms.server.common.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * BaseHandler<T>

@@ -12,6 +12,7 @@ public interface Returnable {
     Ret BAD_REQUEST = new Ret(400, -1, "Bad Request");
     Ret INTERNAL_SERVER_ERROR = new Ret(500, -2, "Internal Server Error");
     Ret PROXY_ERROR = new Ret(500, 2003, "Proxy Error");
+    Ret DAO_ERROR = new Ret(500, 2004, "DAO Error");
 
     /**
      * ret code

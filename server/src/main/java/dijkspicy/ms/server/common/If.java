@@ -1,10 +1,10 @@
 package dijkspicy.ms.server.common;
 
+import javafx.util.Pair;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
-
-import javafx.util.Pair;
 
 /**
  * micro-service-template
@@ -14,12 +14,12 @@ import javafx.util.Pair;
  */
 public abstract class If {
 
-    static IfThen createIf(BooleanSupplier condition, DoSomething doSomething) {
-        return new IfThen(condition, doSomething);
+    static IfThen createIf() {
+        return new IfThen();
     }
 
-    static ElseIf createElseIf(BooleanSupplier condition, DoSomething doSomething) {
-        return new ElseIf(condition, doSomething);
+    static ElseIf createElseIf() {
+        return new ElseIf();
     }
 
     protected void finish() {
@@ -47,8 +47,7 @@ public abstract class If {
     static class ElseIf extends If {
         private final List<Pair<BooleanSupplier, DoSomething>> links = new LinkedList<>();
 
-        private ElseIf(BooleanSupplier condition, DoSomething doSomething) {
-            super.add(condition, doSomething);
+        private ElseIf() {
         }
 
         public ElseIf elseIf(BooleanSupplier condition, DoSomething doSomething) {
@@ -82,8 +81,7 @@ public abstract class If {
 
         private final List<Pair<BooleanSupplier, DoSomething>> links = new LinkedList<>();
 
-        private IfThen(BooleanSupplier condition, DoSomething doSomething) {
-            this.add(condition, doSomething);
+        private IfThen() {
         }
 
         public IfThen ifThen(BooleanSupplier condition, DoSomething doSomething) {
