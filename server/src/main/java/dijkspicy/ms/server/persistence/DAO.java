@@ -1,8 +1,8 @@
 package dijkspicy.ms.server.persistence;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,12 @@ import java.util.Optional;
  * @date 2018/6/25
  */
 @Component
-public class DAO implements ApplicationContextAware {
+public class DAO {
+
+    @Autowired
+    public DAO(ApplicationContext applicationContext) {
+        Holder.applicationContext = applicationContext;
+    }
 
     public static <T> T getInstance(Class<T> beanClazz) {
         try {
@@ -29,13 +34,8 @@ public class DAO implements ApplicationContextAware {
             }
             return names.values().iterator().next();
         } catch (BeansException e) {
-            throw new DAOException("You may forget to configure bean of " + beanClazz.getName());
+            throw new DAOException("You may forget to configure bean of " + beanClazz.getName(), e);
         }
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        Holder.applicationContext = applicationContext;
     }
 
     private static class Holder {

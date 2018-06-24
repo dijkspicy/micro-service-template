@@ -11,7 +11,8 @@ import dijkspicy.ms.server.proxy.impl.XXProxyImpl;
  * @date 2018/6/8
  */
 public interface Proxy {
-     static final Injector INJECTOR = Guice.createInjector(binder -> {
+
+    static final Injector INJECTOR = Guice.createInjector(binder -> {
         binder.bind(XXProxy.class).to(XXProxyImpl.class).asEagerSingleton();
     });
 
