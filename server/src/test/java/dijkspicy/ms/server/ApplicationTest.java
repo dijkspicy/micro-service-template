@@ -48,7 +48,7 @@ public class ApplicationTest {
     @Test
     public void rest() {
         byte[] invoker = new HttpInvoker(HttpClients.createDefault())
-                .invoke("http://localhost:8443/ms/proxy/aql2")
+                .invoke("http://localhost:8443/ms/dao/aql2")
                 .post("{}".getBytes());
         System.out.println(new String(invoker));
     }

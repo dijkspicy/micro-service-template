@@ -6,5 +6,5 @@ package dijkspicy.ms.server.proxy;
  * @author dijkspicy
  * @date 2018/6/24
  */
-public interface XXProxy extends Proxy {
+public interface XXProxy {
 }
