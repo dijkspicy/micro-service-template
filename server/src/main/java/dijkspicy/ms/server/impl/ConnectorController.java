@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ConnectorController {
 
-    @RequestMapping("/jdbc/{type}")
+    @RequestMapping("/ms/jdbc/{type}")
     @PostMapping
     public String request(HttpServletRequest req, HttpServletResponse resp, @PathVariable(value = "type") String type) {
         return new ConnectorHandler(type).execute(new HttpContext(req, resp));
