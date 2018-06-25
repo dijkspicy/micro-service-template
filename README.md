@@ -1,6 +1,6 @@
 # micro-service-template
 
-## 简述
+## 服务目录结构建议
 
 一个微服务模板的架子，大概包括如下几个部分
 
@@ -20,3 +20,12 @@
     - **proxy**：该微服务所依赖的第三系统的代理实现
         - Proxy：一个IOC/DI容器，基于Guice/Spring实现，推荐使用guice，并使用单例模式
         - ProxyException：使用Returnable中的Proxy异常返回码定义，该包及其子包下的所有的异常均需使用或实现该异常
+    - **persistence**：该微服务所依赖的第三系统的代理实现
+        - DAO：一个IOC/DI容器，基于Guice/Spring实现，推荐使用guice，并使用单例模式
+        - DAOException：使用Returnable中的DAO异常返回码定义，该包及其子包下的所有的异常均需使用或实现该异常 
+        - *mapper：基于myBatis实现数据库连接所使用到的配置*  
+    - 一些入口启动类、main方法都放在最外层实现
+
+## maven、包命名、版本等建议
+
+## HTTP方法和HTTP返回码建议 
