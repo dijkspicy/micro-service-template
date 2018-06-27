@@ -1,10 +1,9 @@
 package dijkspicy.ms.server.proxy.restful;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -24,10 +23,7 @@ import org.apache.http.impl.client.HttpClients;
  * @date 2018/6/27
  */
 public class EasyRestfulClientBuilder {
-    private String protocol;
-    private String host;
-    private int port;
-    private String url;
+    private String uri;
     private Map<String, String> queries = new HashMap<>();
     private Map<String, String> headers = new HashMap<>();
 
@@ -37,27 +33,8 @@ public class EasyRestfulClientBuilder {
 
     private RequestConfig requestConfig;
 
-    public static void main(String[] args) throws MalformedURLException {
-        new URL("http:///ads/ad/f/ads/f");
-    }
-
-    public final EasyRestfulClientBuilder setProtocol(String protocol) {
-        this.protocol = protocol;
-        return this;
-    }
-
-    public final EasyRestfulClientBuilder setHost(String host) {
-        this.host = host;
-        return this;
-    }
-
-    public final EasyRestfulClientBuilder setPort(int port) {
-        this.port = port;
-        return this;
-    }
-
-    public final EasyRestfulClientBuilder setUrl(String url) {
-        this.url = url;
+    public final EasyRestfulClientBuilder setURI(String uri) {
+        this.uri = uri;
         return this;
     }
 
@@ -101,21 +78,19 @@ public class EasyRestfulClientBuilder {
     }
 
     private void initWithURI(EasyRestfulClient restfulClient) {
-        URI uri = URI.create(this.url);
+        URI newURI = URI.create(this.uri);
         if (this.queries != null && !this.queries.isEmpty()) {
             StringJoiner joiner = new StringJoiner("&");
             this.queries.forEach((k, v) -> joiner.add(k + "=" + v));
-            String query = uri.getQuery();
-            if (query == null) {
+            String query = newURI.getQuery();
+            if (StringUtils.isBlank(query)) {
                 query = "?" + joiner;
-            } else if (query.trim().isEmpty()) {
-                query = joiner.toString();
             } else {
                 query += "&" + joiner;
             }
-            uri = uri.resolve(query);
+            newURI = newURI.resolve(query);
         }
-        restfulClient.setURI(uri);
+        restfulClient.setURI(newURI);
     }
 
     private void initWithAccount(EasyRestfulClient restfulClient) {
