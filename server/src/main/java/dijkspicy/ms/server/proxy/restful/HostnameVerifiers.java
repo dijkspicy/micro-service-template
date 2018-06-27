@@ -1,4 +1,4 @@
-package dijkspicy.ms.server.proxy.http;
+package dijkspicy.ms.server.proxy.restful;
 
 import javax.net.ssl.HostnameVerifier;
 
@@ -6,12 +6,12 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
 /**
- * HostnameVerifierEnum
+ * HostnameVerifiers
  *
  * @author dijkspicy
  * @date 2018/5/28
  */
-public enum HostnameVerifierEnum {
+public enum HostnameVerifiers {
     /**
      * default hostname verifier
      */
@@ -23,7 +23,7 @@ public enum HostnameVerifierEnum {
 
     private final HostnameVerifier hostnameVerifier;
 
-    HostnameVerifierEnum(HostnameVerifier hostnameVerifier) {
+    HostnameVerifiers(HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
     }
 

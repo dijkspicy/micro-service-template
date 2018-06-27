@@ -8,6 +8,8 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Optional;
 
+import dijkspicy.ms.server.proxy.restful.CipherManager;
+import dijkspicy.ms.server.proxy.restful.HostnameVerifiers;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
@@ -94,14 +96,14 @@ public class HttpInvokerEnvironment {
         return this;
     }
 
-    public HttpInvokerEnvironment setHostnameVerifier(HostnameVerifierEnum hostnameVerifier) {
+    public HttpInvokerEnvironment setHostnameVerifier(HostnameVerifiers hostnameVerifier) {
         this.hostnameVerifier = Optional.ofNullable(hostnameVerifier)
-                .orElse(HostnameVerifierEnum.NONE)
+                .orElse(HostnameVerifiers.NONE)
                 .getHostnameVerifier();
         return this;
     }
 
-    public HttpInvoker newInvoker() throws KeyManagementException, NoSuchAlgorithmException {
+    public EasyRestful newInvoker() throws KeyManagementException, NoSuchAlgorithmException {
         SSLContext sslContext = SSLContext.getInstance(this.sslType);
         KeyManager[] keyManagers = null;
         if (this.keyManagerFactory != null) {
@@ -134,7 +136,7 @@ public class HttpInvokerEnvironment {
         pool.setDefaultMaxPerRoute(Integer.parseInt(maxCnxnsPerRoute));
 
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(pool).build();
-        return new HttpInvoker(httpClient);
+        return new EasyRestful(httpClient);
     }
 
     private void checkFile(Path trustStorePath, String fileName) {

@@ -3,7 +3,7 @@ package dijkspicy.ms.server;
 import java.sql.*;
 import java.util.Properties;
 
-import dijkspicy.ms.server.proxy.http.HttpInvoker;
+import dijkspicy.ms.server.proxy.http.EasyRestful;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class ApplicationTest {
 
     @Test
     public void rest() {
-        byte[] invoker = new HttpInvoker(HttpClients.createDefault())
+        byte[] invoker = new EasyRestful(HttpClients.createDefault())
                 .invoke("http://localhost:8443/ms/proxy/aql2")
                 .post("{}".getBytes());
         System.out.println(new String(invoker));

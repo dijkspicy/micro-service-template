@@ -1,94 +1,85 @@
-package dijkspicy.ms.server.proxy.http;
+package dijkspicy.ms.server.proxy.restful;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.function.Function;
 
 import dijkspicy.ms.server.common.Timer;
 import org.apache.http.HttpHost;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * HttpInvoker
+ * EasyRestfulClient
  *
  * @author dijkspicy
- * @date 2018/5/28
+ * @date 2018/6/27
  */
-public class HttpInvoker {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpInvoker.class);
+public class EasyRestfulClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EasyRestfulClient.class);
     private final CloseableHttpClient httpClient;
-    private String url;
-    private Map<String, String> headers;
-    private Map<String, String> query;
-    private CredentialsProvider credentialsProvider;
+
+    private BasicCredentialsProvider credentialsProvider;
     private Lookup<AuthSchemeProvider> authRegistry;
     private AuthCache authCache;
+
     private HttpHost host;
     private String method;
     private URI uri;
+    private Map<String, String> headers;
 
-    public HttpInvoker() {
-        this(HttpClients.createDefault());
-    }
+    private RequestConfig requestConfig;
 
-    public HttpInvoker(CloseableHttpClient httpClient) {
+    public EasyRestfulClient(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
-    public HttpInvoker login(String username, String password) {
-        return this.login(AuthSchemesEnum.BASIC, username, password);
-    }
-
-    public HttpInvoker login(AuthSchemesEnum authType, String username, String password) {
-        Credentials credentials = new UsernamePasswordCredentials(Objects.requireNonNull(username), Objects.requireNonNull(password));
-        this.credentialsProvider = new BasicCredentialsProvider();
-        this.credentialsProvider.setCredentials(AuthScope.ANY, credentials);
-
-        RegistryBuilder<AuthSchemeProvider> authRegistryBuilder = RegistryBuilder.create();
-        Optional.ofNullable(authType)
-                .orElse(AuthSchemesEnum.BASIC)
-                .register(authRegistryBuilder);
-        this.authRegistry = authRegistryBuilder.build();
-        this.authCache = new BasicAuthCache();
+    public EasyRestfulClient setRequestConfig(RequestConfig requestConfig) {
+        this.requestConfig = requestConfig;
         return this;
     }
 
-    public HttpInvoker invoke(String url) {
-        this.url = url;
-        this.resetHost();
+    public EasyRestfulClient setBasicCredentialsProvider(BasicCredentialsProvider credentialsProvider) {
+        this.credentialsProvider = credentialsProvider;
         return this;
     }
 
-    public HttpInvoker withHeaders(Map<String, String> headers) {
+    public EasyRestfulClient setLookup(Lookup<AuthSchemeProvider> authRegistry) {
+        this.authRegistry = authRegistry;
+        return this;
+    }
+
+    public EasyRestfulClient setAuthCache(AuthCache authCache) {
+        this.authCache = authCache;
+        return this;
+    }
+
+    public EasyRestfulClient setURI(URI uri) {
+        this.uri = uri;
+        return this;
+    }
+
+    public EasyRestfulClient setHttpHost(HttpHost host) {
+        this.host = host;
+        return this;
+    }
+
+    public EasyRestfulClient setHeaders(Map<String, String> headers) {
         this.headers = headers;
-        return this;
-    }
-
-    public HttpInvoker withQuery(Map<String, String> query) {
-        this.query = query;
-        this.resetHost();
         return this;
     }
 
@@ -143,27 +134,8 @@ public class HttpInvoker {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        HttpInvoker that = (HttpInvoker) o;
-        return Objects.equals(method, that.method) &&
-                Objects.equals(url, that.url);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(method, url);
-    }
-
-    @Override
     public String toString() {
-        return this.method + " " + this.url;
+        return this.method + " " + this.uri;
     }
 
     private static boolean isUnavailable(int statusCode) {
@@ -179,8 +151,6 @@ public class HttpInvoker {
     }
 
     private byte[] send(byte[] request) {
-        this.initHost();
-
         HttpClientContext context = HttpClientContext.create();
         context.setTargetHost(this.host);
 
@@ -191,10 +161,14 @@ public class HttpInvoker {
             context.setAuthCache(this.authCache);
         }
 
+        if (null != this.requestConfig) {
+            context.setRequestConfig(this.requestConfig);
+        }
+
         // http request
         HttpUriRequest httpUriRequest = this.genRequest(request);
 
-        while (true) {
+        do {
             try (final CloseableHttpResponse response = this.execute(httpUriRequest, context);
                  final AutoCloseable ignored = Timer.start(this)) {
                 final int statusCode = response.getStatusLine().getStatusCode();
@@ -216,29 +190,7 @@ public class HttpInvoker {
                 LOGGER.debug("Failed to execute HTTP request", e);
                 throw new RuntimeException(e);
             }
-        }
-
-    }
-
-    private void resetHost() {
-        this.uri = null;
-        this.host = null;
-    }
-
-    private void initHost() {
-        if (this.host != null && this.uri != null) {
-            return;
-        }
-
-        try {
-            URL tempUrl = this.genURL(this.url, this.query);
-            this.uri = tempUrl.toURI();
-            this.host = new HttpHost(tempUrl.getHost(), tempUrl.getPort(), tempUrl.getProtocol());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Invalid url: " + url);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Invalid url string: " + url);
-        }
+        } while (true);
     }
 
     private HttpUriRequest genRequest(byte[] rawBody) {
@@ -274,24 +226,5 @@ public class HttpInvoker {
 
     private CloseableHttpResponse execute(HttpUriRequest post, HttpClientContext context) throws IOException {
         return this.httpClient.execute(post, context);
-    }
-
-    private URL genURL(String link, Map<String, String> queryParams) throws MalformedURLException {
-        URL url = new URL(Objects.requireNonNull(link, "Http url can't be null"));
-        if (queryParams == null || queryParams.isEmpty()) {
-            return url;
-        }
-
-        StringJoiner joiner = new StringJoiner("&");
-        queryParams.forEach((k, v) -> joiner.add(k + "=" + v));
-        String query = url.getQuery();
-        if (query == null) {
-            query = "?" + joiner;
-        } else if (query.trim().isEmpty()) {
-            query = joiner.toString();
-        } else {
-            query += "&" + joiner;
-        }
-        return new URL(url + query);
     }
 }
