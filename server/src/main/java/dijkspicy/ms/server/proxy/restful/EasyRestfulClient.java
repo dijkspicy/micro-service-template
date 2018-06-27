@@ -1,27 +1,27 @@
 package dijkspicy.ms.server.proxy.restful;
 
+import dijkspicy.ms.server.common.Timer;
+import org.apache.http.HttpHost;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.*;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Lookup;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
-import dijkspicy.ms.server.common.Timer;
-import org.apache.http.HttpHost;
-import org.apache.http.NoHttpResponseException;
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.client.AuthCache;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.*;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.Lookup;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * EasyRestfulClient
@@ -33,7 +33,7 @@ public class EasyRestfulClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(EasyRestfulClient.class);
     private final CloseableHttpClient httpClient;
 
-    private BasicCredentialsProvider credentialsProvider;
+    private CredentialsProvider credentialsProvider;
     private Lookup<AuthSchemeProvider> authRegistry;
     private AuthCache authCache;
 
@@ -53,7 +53,7 @@ public class EasyRestfulClient {
         return this;
     }
 
-    public EasyRestfulClient setBasicCredentialsProvider(BasicCredentialsProvider credentialsProvider) {
+    public EasyRestfulClient setCredentialsProvider(CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
         return this;
     }

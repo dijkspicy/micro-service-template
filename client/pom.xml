@@ -16,7 +16,7 @@
         <dependency>
             <groupId>dijkspicy.micro-service-template</groupId>
             <artifactId>micro-service-template-api</artifactId>
-            <version>${pro}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

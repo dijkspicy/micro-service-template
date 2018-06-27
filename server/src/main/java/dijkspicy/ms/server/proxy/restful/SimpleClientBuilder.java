@@ -1,8 +1,5 @@
 package dijkspicy.ms.server.proxy.restful;
 
-import java.net.URI;
-import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
@@ -16,14 +13,20 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
+
 /**
  * EasyRestfulClientBuilder
  *
  * @author dijkspicy
  * @date 2018/6/27
  */
-public class EasyRestfulClientBuilder {
-    private String uri;
+public class SimpleClientBuilder {
+    protected String uri;
     private Map<String, String> queries = new HashMap<>();
     private Map<String, String> headers = new HashMap<>();
 
@@ -33,33 +36,33 @@ public class EasyRestfulClientBuilder {
 
     private RequestConfig requestConfig;
 
-    public final EasyRestfulClientBuilder setURI(String uri) {
+    public final SimpleClientBuilder setURI(String uri) {
         this.uri = uri;
         return this;
     }
 
-    public final EasyRestfulClientBuilder setHeaders(Map<String, String> headers) {
+    public final SimpleClientBuilder setHeaders(Map<String, String> headers) {
         this.headers = headers;
         return this;
     }
 
-    public final EasyRestfulClientBuilder setQueries(Map<String, String> queries) {
+    public final SimpleClientBuilder setQueries(Map<String, String> queries) {
         this.queries = queries;
         return this;
     }
 
-    public final EasyRestfulClientBuilder setAccount(AuthSchemes authSchemes, String account, String password) {
+    public final SimpleClientBuilder setAccount(AuthSchemes authSchemes, String account, String password) {
         this.authSchemes = authSchemes;
         this.account = account;
         this.password = password;
         return this;
     }
 
-    public final EasyRestfulClientBuilder setAccount(String account, String password) {
+    public final SimpleClientBuilder setAccount(String account, String password) {
         return this.setAccount(AuthSchemes.BASIC, account, password);
     }
 
-    public final EasyRestfulClientBuilder setRequestConfig(RequestConfig requestConfig) {
+    public final SimpleClientBuilder setRequestConfig(RequestConfig requestConfig) {
         this.requestConfig = requestConfig;
         return this;
     }
@@ -94,7 +97,11 @@ public class EasyRestfulClientBuilder {
     }
 
     private void initWithAccount(EasyRestfulClient restfulClient) {
-        Credentials credentials = new UsernamePasswordCredentials(Objects.requireNonNull(account), Objects.requireNonNull(password));
+        if (this.account == null || this.password == null) {
+            return;
+        }
+
+        Credentials credentials = new UsernamePasswordCredentials(this.account, this.password);
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, credentials);
 
@@ -104,8 +111,9 @@ public class EasyRestfulClientBuilder {
                 .register(authRegistryBuilder);
         Registry<AuthSchemeProvider> authRegistry = authRegistryBuilder.build();
         BasicAuthCache authCache = new BasicAuthCache();
+
         restfulClient
-                .setBasicCredentialsProvider(credentialsProvider)
+                .setCredentialsProvider(credentialsProvider)
                 .setLookup(authRegistry)
                 .setAuthCache(authCache);
     }

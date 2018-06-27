@@ -8,15 +8,15 @@ package dijkspicy.ms.server.proxy.restful;
  */
 public abstract class EasyRestful {
 
-    public static EasyRestfulClientBuilder create() {
-        return new EasyRestfulClientBuilder();
+    public static SimpleClientBuilder create() {
+        return new SimpleClientBuilder();
     }
 
-    public static EasyRestfulSafeClientBuilder createSafe() {
-        return new EasyRestfulSafeClientBuilder();
+    public static SSLClientBuilder createSafe() {
+        return new SSLClientBuilder();
     }
 
-    public static EasyRestfulClientBuilder createAutoSafe() {
-        return new EasyRestfulSafeClientBuilder();
+    public static AutoSyncSSLClientBuilder createAutoSafe() {
+        return new AutoSyncSSLClientBuilder();
     }
 }
