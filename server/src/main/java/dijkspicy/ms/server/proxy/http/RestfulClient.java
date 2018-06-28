@@ -99,11 +99,6 @@ public class RestfulClient implements Restful {
         return this.send(req, uri, headers, callback);
     }
 
-    public RestfulClient setEnvironment(RemoteEnvironment environment) {
-        HttpClientFactory.addEnv(environment);
-        return this;
-    }
-
     private static boolean isUnavailable(int statusCode) {
         return statusCode == HttpURLConnection.HTTP_UNAVAILABLE;
     }
