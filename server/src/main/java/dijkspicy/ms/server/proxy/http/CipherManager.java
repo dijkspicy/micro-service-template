@@ -1,4 +1,4 @@
-package dijkspicy.ms.server.proxy.restful;
+package dijkspicy.ms.server.proxy.http;
 
 
 /**

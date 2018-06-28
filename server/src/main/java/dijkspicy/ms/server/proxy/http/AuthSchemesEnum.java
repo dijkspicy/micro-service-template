@@ -1,4 +1,4 @@
-package dijkspicy.ms.server.proxy.restful;
+package dijkspicy.ms.server.proxy.http;
 
 import java.util.function.Supplier;
 
@@ -8,12 +8,12 @@ import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
 
 /**
- * AuthSchemes
+ * AuthSchemesEnum
  *
  * @author dijkspicy
  * @date 2018/5/28
  */
-public enum AuthSchemes {
+public enum AuthSchemesEnum {
     /**
      * basic auth scheme
      */
@@ -26,7 +26,7 @@ public enum AuthSchemes {
     private final String authType;
     private final Supplier<AuthSchemeProvider> schemeProvider;
 
-    AuthSchemes(String authType, Supplier<AuthSchemeProvider> schemeProvider) {
+    AuthSchemesEnum(String authType, Supplier<AuthSchemeProvider> schemeProvider) {
         this.authType = authType;
         this.schemeProvider = schemeProvider;
     }

@@ -1,10 +1,9 @@
 package dijkspicy.ms.server;
 
-import dijkspicy.ms.server.proxy.restful.EasyRestful;
-import org.junit.Test;
-
 import java.sql.*;
 import java.util.Properties;
+
+import org.junit.Test;
 
 /**
  * ApplicationTest
@@ -43,14 +42,4 @@ public class ApplicationTest {
             System.out.println(resultSet);
         }
     }
-
-    @Test
-    public void rest() {
-        byte[] invoker = EasyRestful.create()
-                .setURI("http://localhost:8443/ms/dao/aql2")
-                .build()
-                .post("{}".getBytes());
-        System.out.println(new String(invoker));
-    }
-
 }
