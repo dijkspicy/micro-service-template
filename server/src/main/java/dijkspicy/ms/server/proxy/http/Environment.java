@@ -108,9 +108,11 @@ public class Environment {
     private void writeBackEnv(EnvironmentConfig config) {
         try {
             Path envFilePath = getEnvFilePath();
-            if (!ENVIRONMENT_MAP.containsKey(config.getHost()) || !ENVIRONMENT_MAP.get(config.getHost()).equals(config)) {
-                ENVIRONMENT_MAP.put(config.getHost(), config);
-                Files.write(envFilePath, MAPPER.writeValueAsBytes(ENVIRONMENT_MAP));
+            Map<String, EnvironmentConfig> configMap = MAPPER.readValue(envFilePath.toFile(), new TypeReference<Map<String, EnvironmentConfig>>() {
+            });
+            if (!configMap.containsKey(config.getHost()) || !configMap.get(config.getHost()).equals(config)) {
+                configMap.putAll(ENVIRONMENT_MAP);
+                Files.write(envFilePath, MAPPER.writeValueAsBytes(configMap));
             }
         } catch (Exception e) {
             LOGGER.error("Failed to write back to env.json");
