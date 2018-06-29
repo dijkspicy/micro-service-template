@@ -140,7 +140,7 @@ public class RestfulClient implements Restful {
 
         do {
             try (final CloseableHttpResponse response = this.execute(req, context);
-                 final AutoCloseable ignored = Timer.start(this)) {
+                 final AutoCloseable ignored = Timer.start(req)) {
                 final int statusCode = response.getStatusLine().getStatusCode();
                 if (isSuccess(statusCode) || isServerError(statusCode)) {
                     return EntityUtils.toByteArray(response.getEntity());

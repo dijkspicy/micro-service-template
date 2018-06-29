@@ -1,6 +1,6 @@
 package dijkspicy.ms.server.proxy.http;
 
-import javax.annotation.Nonnull;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,7 +51,7 @@ public class Environment {
     private final EnvironmentConfig environmentConfig;
     private final Supplier<String> host;
 
-    public Environment(@Nonnull EnvironmentConfig environmentConfig) {
+    public Environment(@NotNull EnvironmentConfig environmentConfig) {
         this.environmentConfig = environmentConfig;
         this.host = this.environmentConfig::getHost;
     }
