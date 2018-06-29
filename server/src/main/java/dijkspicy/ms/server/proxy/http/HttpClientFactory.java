@@ -1,13 +1,17 @@
 package dijkspicy.ms.server.proxy.http;
 
+import javax.annotation.Nonnull;
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -29,20 +33,19 @@ import org.slf4j.LoggerFactory;
 public abstract class HttpClientFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientFactory.class);
     private static final Map<String, CloseableHttpClient> HTTP_CLIENT_MAP = new ConcurrentHashMap<>();
-    private static final String[] supportedProtocols = {
+    private static final String[] SUPPORTED_PROTOCOLS = {
             "TLSv1",
             "TLSv1.1",
             "TLSv1.2"
     };
-    private static final String[] supportedCipherSuites = {
+    private static final String[] SUPPORTED_CIPHER_SUITES = {
             "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
             "TLS_RSA_WITH_AES_128_CBC_SHA256",
             "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
             "TLS_RSA_WITH_AES_128_CBC_SHA"
     };
 
-    public static void setEnvConfig() {
-
+    private HttpClientFactory() {
     }
 
     public static CloseableHttpClient createDefault() {
@@ -53,14 +56,14 @@ public abstract class HttpClientFactory {
         return createDefault();
     }
 
-    public static CloseableHttpClient createSSL(TrustStoreConfig trustStoreConfig, KeyStoreConfig keyStoreConfig) throws GeneralSecurityException, IOException {
-        return createSSL(trustStoreConfig, keyStoreConfig, "SSL");
+    public static CloseableHttpClient createSSL(KeyStoreConfig keyStoreConfig, TrustStoreConfig trustStoreConfig) throws GeneralSecurityException, IOException {
+        return createSSL(keyStoreConfig, trustStoreConfig, "SSL");
     }
 
-    public static CloseableHttpClient createSSL(TrustStoreConfig trustStoreConfig, KeyStoreConfig keyStoreConfig, String sslType) throws GeneralSecurityException, IOException {
+    public static CloseableHttpClient createSSL(KeyStoreConfig keyStoreConfig, TrustStoreConfig trustStoreConfig, String sslType) throws GeneralSecurityException, IOException {
         RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.create();
         registryBuilder.register("http", PlainConnectionSocketFactory.getSocketFactory());
-        ConnectionSocketFactory sslFactory = getConnectionSocketFactory(trustStoreConfig, keyStoreConfig, sslType);
+        ConnectionSocketFactory sslFactory = getConnectionSocketFactory(keyStoreConfig, trustStoreConfig, sslType);
         registryBuilder.register("https", sslFactory);
 
         PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager(registryBuilder.build());
@@ -70,7 +73,15 @@ public abstract class HttpClientFactory {
         return HttpClients.custom().setConnectionManager(pool).build();
     }
 
-    public static CloseableHttpClient createOrGet(String host) {
+    public static CloseableHttpClient createSSLFromHost(String host) {
+        return createSSLFromHost(host, null, null);
+    }
+
+    public static CloseableHttpClient createSSLFromHost(String host, Function<Path, KeyStoreConfig> keyStoreMapping, Function<Path, TrustStoreConfig> trustStoreMapping) {
+        return createSSLFromHost(host, keyStoreMapping, trustStoreMapping, "SSL");
+    }
+
+    public static CloseableHttpClient createSSLFromHost(String host, Function<Path, KeyStoreConfig> keyStoreMapping, Function<Path, TrustStoreConfig> trustStoreMapping, String sslType) {
         return HTTP_CLIENT_MAP.computeIfAbsent(host, i -> {
             EnvironmentConfig environmentConfig = Environment.getEnv(i);
             if (environmentConfig == null) {
@@ -78,13 +89,29 @@ public abstract class HttpClientFactory {
                 return createTrustAll();
             }
 
+            return createSSLFromEnvironment(environmentConfig, keyStoreMapping, trustStoreMapping, sslType);
+        });
+    }
+
+    public static CloseableHttpClient createSSLFromEnvironment(@Nonnull EnvironmentConfig environmentConfig) {
+        return createSSLFromEnvironment(environmentConfig, null, null);
+    }
+
+    public static CloseableHttpClient createSSLFromEnvironment(@Nonnull EnvironmentConfig environmentConfig, Function<Path, KeyStoreConfig> keyStoreMapping, Function<Path, TrustStoreConfig> trustStoreMapping) {
+        return createSSLFromEnvironment(environmentConfig, keyStoreMapping, trustStoreMapping, "SSL");
+    }
+
+    public static CloseableHttpClient createSSLFromEnvironment(@Nonnull EnvironmentConfig environmentConfig, Function<Path, KeyStoreConfig> keyStoreMapping, Function<Path, TrustStoreConfig> trustStoreMapping, String sslType) {
+        return HTTP_CLIENT_MAP.computeIfAbsent(environmentConfig.getHost(), i -> {
             try {
                 Path path = new Environment(environmentConfig).download();
-                KeyStoreConfig keyStoreConfig = new KeyStoreConfig()
-                        .setPath(path.resolve("ssl/internal/server.p12"));
-                TrustStoreConfig trustStoreConfig = new TrustStoreConfig()
-                        .setPath(path.resolve("ssl/internal/trust.jks"));
-                return createSSL(trustStoreConfig, keyStoreConfig);
+                KeyStoreConfig keyStore = Optional.ofNullable(keyStoreMapping)
+                        .orElse(p -> null)
+                        .apply(path);
+                TrustStoreConfig trustStore = Optional.ofNullable(trustStoreMapping)
+                        .orElse(p -> null)
+                        .apply(path);
+                return createSSL(keyStore, trustStore, sslType);
             } catch (IOException | GeneralSecurityException e) {
                 LOGGER.error(e.getMessage());
                 return createTrustAll();
@@ -92,16 +119,20 @@ public abstract class HttpClientFactory {
         });
     }
 
-    private static ConnectionSocketFactory getConnectionSocketFactory(TrustStoreConfig trustStoreConfig, KeyStoreConfig keyStoreConfig, String sslType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
-        TrustManager[] trustManagers = getTrustManagers(trustStoreConfig);
+    private static ConnectionSocketFactory getConnectionSocketFactory(KeyStoreConfig keyStoreConfig, TrustStoreConfig trustStoreConfig, String sslType) throws GeneralSecurityException, IOException {
         KeyManager[] keyManagers = getKeyManagers(keyStoreConfig);
+        TrustManager[] trustManagers = getTrustManagers(trustStoreConfig);
 
         SSLContext sslContext = SSLContext.getInstance(sslType);
         sslContext.init(keyManagers, trustManagers, new SecureRandom());
-        return new SSLConnectionSocketFactory(sslContext, supportedProtocols, supportedCipherSuites, NoopHostnameVerifier.INSTANCE);
+        return new SSLConnectionSocketFactory(sslContext, SUPPORTED_PROTOCOLS, SUPPORTED_CIPHER_SUITES, NoopHostnameVerifier.INSTANCE);
     }
 
-    private static KeyManager[] getKeyManagers(KeyStoreConfig keyStoreConfig) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
+    private static KeyManager[] getKeyManagers(KeyStoreConfig keyStoreConfig) throws GeneralSecurityException, IOException {
+        if (keyStoreConfig == null) {
+            return null;
+        }
+
         KeyStore keyStore = KeyStore.getInstance(keyStoreConfig.getStoreType());
         keyStore.load(openStream(keyStoreConfig.getPath()), keyStoreConfig.getStorePass().toCharArray());
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -110,7 +141,11 @@ public abstract class HttpClientFactory {
         return keyManagerFactory.getKeyManagers();
     }
 
-    private static TrustManager[] getTrustManagers(TrustStoreConfig trustStoreConfig) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    private static TrustManager[] getTrustManagers(TrustStoreConfig trustStoreConfig) throws GeneralSecurityException, IOException {
+        if (trustStoreConfig == null) {
+            return null;
+        }
+
         KeyStore trustStore = KeyStore.getInstance(trustStoreConfig.getStoreType());
         trustStore.load(openStream(trustStoreConfig.getPath()), trustStoreConfig.getStorePass().toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

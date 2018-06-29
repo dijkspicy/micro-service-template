@@ -16,7 +16,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.ImmutableMap;
 import com.jcraft.jsch.*;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +50,6 @@ public class Environment {
 
     private final EnvironmentConfig environmentConfig;
     private final Supplier<String> host;
-    private Map<String, String> remoteDirectories = ImmutableMap.<String, String>builder()
-            .put("/opt/oss/%s/etc/ssl", "ssl")
-            .put("/opt/oss/%s/etc/cipher", "cipher")
-            .build();
 
     public Environment(@Nonnull EnvironmentConfig environmentConfig) {
         this.environmentConfig = environmentConfig;
@@ -73,15 +68,6 @@ public class Environment {
         environments.forEach(Environment::addEnv);
     }
 
-    public Map<String, String> getRemoteDirectories() {
-        return remoteDirectories;
-    }
-
-    public Environment setRemoteDirectories(@Nonnull Map<String, String> remoteDirectories) {
-        this.remoteDirectories = remoteDirectories;
-        return this;
-    }
-
     public Path download() throws IOException {
         Path localDirectory = Paths.get(LOCAL_PARENT_DIR, this.host.get()).toAbsolutePath();
         if (Files.exists(localDirectory) && Files.list(localDirectory).findFirst().isPresent()) {
@@ -89,11 +75,7 @@ public class Environment {
         }
 
         try (final AutoSession autoSession = new AutoSession(this.environmentConfig)) {
-            this.remoteDirectories.forEach((remote, local) -> {
-                remote = String.format(remote, this.environmentConfig.getTenant());
-                this.handleConnection(autoSession, remote, local);
-            });
-
+            this.environmentConfig.getMapping().forEach((remote, local) -> this.handleConnection(autoSession, remote, local));
             this.writeBackEnv(this.environmentConfig);
         } catch (Exception e) {
             throw new RuntimeException("Failed to download from: " + this + ", error: " + e.getMessage(), e);

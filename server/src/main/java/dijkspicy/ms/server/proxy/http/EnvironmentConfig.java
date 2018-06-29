@@ -1,6 +1,9 @@
 package dijkspicy.ms.server.proxy.http;
 
+import java.util.Map;
 import java.util.Objects;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * EnvironmentConfig
@@ -13,7 +16,19 @@ public class EnvironmentConfig {
     private int port = 22;
     private String user = "root";
     private String pass = "";
-    private String tenant = "SOP";
+    private Map<String, String> mapping = ImmutableMap.<String, String>builder()
+            .put("/opt/oss/SOP/etc/ssl", "ssl")
+            .put("/opt/oss/SOP/etc/cipher", "cipher")
+            .build();
+
+    public Map<String, String> getMapping() {
+        return mapping;
+    }
+
+    public EnvironmentConfig setMapping(Map<String, String> mapping) {
+        this.mapping = mapping;
+        return this;
+    }
 
     public String getHost() {
         return host;
@@ -51,19 +66,10 @@ public class EnvironmentConfig {
         return this;
     }
 
-    public String getTenant() {
-        return tenant;
-    }
-
-    public EnvironmentConfig setTenant(String tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
     @Override
     public int hashCode() {
 
-        return Objects.hash(host, port, user, pass, tenant);
+        return Objects.hash(host, port, user, pass);
     }
 
     @Override
@@ -75,15 +81,14 @@ public class EnvironmentConfig {
             return false;
         }
         EnvironmentConfig that = (EnvironmentConfig) o;
-        return port == that.port &&
-                Objects.equals(host, that.host) &&
-                Objects.equals(user, that.user) &&
-                Objects.equals(pass, that.pass) &&
-                Objects.equals(tenant, that.tenant);
+        return port == that.port
+                && Objects.equals(host, that.host)
+                && Objects.equals(user, that.user)
+                && Objects.equals(pass, that.pass);
     }
 
     @Override
     public String toString() {
-        return this.user + ":" + this.pass + "@" + this.host + ":" + this.port + "/opt/oss/" + this.tenant;
+        return this.user + ":" + this.pass + "@" + this.host + ":" + this.port;
     }
 }

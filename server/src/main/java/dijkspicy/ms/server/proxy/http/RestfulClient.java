@@ -99,6 +99,14 @@ public class RestfulClient implements Restful {
         return this.send(req, uri, headers, callback);
     }
 
+    protected CloseableHttpClient getHttpClient() {
+        return HttpClientFactory.createTrustAll();
+    }
+
+    protected CloseableHttpClient getHttpsClient(String host) {
+        return HttpClientFactory.createSSLFromHost(host);
+    }
+
     private static boolean isUnavailable(int statusCode) {
         return statusCode == HttpURLConnection.HTTP_UNAVAILABLE;
     }
@@ -157,9 +165,11 @@ public class RestfulClient implements Restful {
         URI uri = request.getURI();
         String schema = uri.getScheme();
         String host = uri.getHost();
-        CloseableHttpClient closeableHttpClient = "https".equals(schema) && StringUtils.isNoneBlank(host)
-                ? HttpClientFactory.createOrGet(host)
-                : HttpClientFactory.createTrustAll();
+        boolean needCertificate = "https".equals(schema) && StringUtils.isNoneBlank(host)
+                && !"127.0.0.1".equals(host) && !"localhost".equals(host) && !"0.0.0.0".equals(host);
+        CloseableHttpClient closeableHttpClient = needCertificate
+                ? this.getHttpsClient(host)
+                : this.getHttpClient();
         return closeableHttpClient.execute(request, context);
     }
 }
