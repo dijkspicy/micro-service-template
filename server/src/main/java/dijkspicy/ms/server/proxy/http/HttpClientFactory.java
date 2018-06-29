@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public abstract class HttpClientFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientFactory.class);
     private static final Map<String, CloseableHttpClient> HTTP_CLIENT_MAP = new ConcurrentHashMap<>();
-    private static final Map<String, RemoteEnvironment> REMOTE_ENVIRONMENT_MAP = new ConcurrentHashMap<>();
     private static final String[] supportedProtocols = {
             "TLSv1",
             "TLSv1.1",
@@ -42,6 +40,10 @@ public abstract class HttpClientFactory {
             "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
             "TLS_RSA_WITH_AES_128_CBC_SHA"
     };
+
+    public static void setEnvConfig() {
+
+    }
 
     public static CloseableHttpClient createDefault() {
         return HttpClients.createDefault();
@@ -70,14 +72,14 @@ public abstract class HttpClientFactory {
 
     public static CloseableHttpClient createOrGet(String host) {
         return HTTP_CLIENT_MAP.computeIfAbsent(host, i -> {
-            RemoteEnvironment environment = REMOTE_ENVIRONMENT_MAP.get(i);
-            if (environment == null) {
+            EnvironmentConfig environmentConfig = Environment.getEnv(i);
+            if (environmentConfig == null) {
                 LOGGER.error("no environment of " + host);
                 return createTrustAll();
             }
 
             try {
-                Path path = environment.download();
+                Path path = new Environment(environmentConfig).download();
                 KeyStoreConfig keyStoreConfig = new KeyStoreConfig()
                         .setPath(path.resolve("ssl/internal/server.p12"));
                 TrustStoreConfig trustStoreConfig = new TrustStoreConfig()
@@ -88,14 +90,6 @@ public abstract class HttpClientFactory {
                 return createTrustAll();
             }
         });
-    }
-
-    public static void addEnv(RemoteEnvironment environment) {
-        REMOTE_ENVIRONMENT_MAP.put(environment.getHost(), environment);
-    }
-
-    public static void addEnv(List<RemoteEnvironment> environments) {
-        environments.forEach(HttpClientFactory::addEnv);
     }
 
     private static ConnectionSocketFactory getConnectionSocketFactory(TrustStoreConfig trustStoreConfig, KeyStoreConfig keyStoreConfig, String sslType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
