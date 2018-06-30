@@ -49,4 +49,14 @@ public class KeyStoreConfig {
         this.keyPass = keyPass;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "KeyStoreConfig{" +
+                "path=" + path +
+                ", storeType='" + storeType + '\'' +
+                ", storePass='" + storePass + '\'' +
+                ", keyPass='" + keyPass + '\'' +
+                '}';
+    }
 }

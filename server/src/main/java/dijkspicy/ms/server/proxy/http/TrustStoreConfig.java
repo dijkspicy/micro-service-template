@@ -39,4 +39,13 @@ public class TrustStoreConfig {
         this.storePass = storePass;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "TrustStoreConfig{" +
+                "path=" + path +
+                ", storeType='" + storeType + '\'' +
+                ", storePass='" + storePass + '\'' +
+                '}';
+    }
 }

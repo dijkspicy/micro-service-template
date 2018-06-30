@@ -154,6 +154,7 @@ public abstract class HttpClientFactory {
             return null;
         }
 
+        LOGGER.info("Load key store file from " + keyStoreConfig);
         KeyStore keyStore = KeyStore.getInstance(keyStoreConfig.getStoreType());
         keyStore.load(openStream(keyStoreConfig.getPath()), keyStoreConfig.getStorePass().toCharArray());
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -168,6 +169,7 @@ public abstract class HttpClientFactory {
             return null;
         }
 
+        LOGGER.info("Load trust store file from " + trustStoreConfig);
         KeyStore trustStore = KeyStore.getInstance(trustStoreConfig.getStoreType());
         trustStore.load(openStream(trustStoreConfig.getPath()), trustStoreConfig.getStorePass().toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
