@@ -6,5 +6,5 @@ package dijkspicy.ms.server.persistence.impl;
  * @author dijkspicy
  * @date 2018/6/26
  */
-public abstract class BaseDAOImpl {
+abstract class BaseDAOImpl {
 }

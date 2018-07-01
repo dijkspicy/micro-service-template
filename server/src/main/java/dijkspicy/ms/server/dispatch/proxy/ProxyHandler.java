@@ -4,7 +4,6 @@ import dijkspicy.ms.server.dispatch.BaseHandler;
 import dijkspicy.ms.server.dispatch.HttpContext;
 import dijkspicy.ms.server.dispatch.ServiceException;
 import dijkspicy.ms.server.dispatch.ServiceResponse;
-import dijkspicy.ms.server.proxy.Proxy;
 import dijkspicy.ms.server.proxy.XXProxy;
 
 /**
@@ -19,8 +18,6 @@ public class ProxyHandler extends BaseHandler<ServiceResponse> {
 
     @Override
     protected ServiceResponse doMainLogic(HttpContext context) throws ServiceException {
-        XXProxy out = Proxy.getInstance(XXProxy.class);
-        LOGGER.error(out.toString());
         return new ServiceResponse();
     }
 }

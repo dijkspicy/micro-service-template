@@ -1,5 +1,15 @@
 package dijkspicy.ms.server.proxy.http;
 
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,17 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-
-import com.sun.istack.internal.NotNull;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * HttpClientFactory
@@ -100,24 +99,24 @@ public abstract class HttpClientFactory {
         });
     }
 
-    public static CloseableHttpClient createSSLFromEnvironment(@NotNull EnvironmentConfig environmentConfig) {
+    public static CloseableHttpClient createSSLFromEnvironment(EnvironmentConfig environmentConfig) {
         return createSSLFromEnvironment(environmentConfig, null, null);
     }
 
-    public static CloseableHttpClient createSSLFromEnvironment(@NotNull EnvironmentConfig environmentConfig,
+    public static CloseableHttpClient createSSLFromEnvironment(EnvironmentConfig environmentConfig,
                                                                Function<Path, KeyStoreConfig> keyStoreMapping,
                                                                Function<Path, TrustStoreConfig> trustStoreMapping) {
         return createSSLFromEnvironment(environmentConfig, keyStoreMapping, trustStoreMapping, "SSL");
     }
 
-    public static CloseableHttpClient createSSLFromEnvironment(@NotNull EnvironmentConfig environmentConfig,
+    public static CloseableHttpClient createSSLFromEnvironment(EnvironmentConfig environmentConfig,
                                                                Function<Path, KeyStoreConfig> keyStoreMapping,
                                                                Function<Path, TrustStoreConfig> trustStoreMapping,
                                                                String sslType) {
         return HTTP_CLIENT_MAP.computeIfAbsent(environmentConfig.getHost(), i -> createCloseableHttpClient(environmentConfig, keyStoreMapping, trustStoreMapping, sslType));
     }
 
-    public static CloseableHttpClient createCloseableHttpClient(@NotNull EnvironmentConfig environmentConfig,
+    public static CloseableHttpClient createCloseableHttpClient(EnvironmentConfig environmentConfig,
                                                                 Function<Path, KeyStoreConfig> keyStoreMapping,
                                                                 Function<Path, TrustStoreConfig> trustStoreMapping,
                                                                 String sslType) {

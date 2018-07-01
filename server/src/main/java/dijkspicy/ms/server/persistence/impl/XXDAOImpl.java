@@ -1,8 +1,8 @@
 package dijkspicy.ms.server.persistence.impl;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import dijkspicy.ms.server.persistence.XXDAO;
-
-import java.sql.SQLException;
 
 /**
  * micro-service-template
@@ -10,9 +10,14 @@ import java.sql.SQLException;
  * @author dijkspicy
  * @date 2018/6/24
  */
+@Singleton
 public class XXDAOImpl extends BaseDAOImpl implements XXDAO {
+
+    @Inject
+    private XXCacheDAO xxCacheDAO;
+
     @Override
-    public Object get() throws SQLException {
-        throw new SQLException("nothing");
+    public Object get() {
+        return xxCacheDAO.get();
     }
 }

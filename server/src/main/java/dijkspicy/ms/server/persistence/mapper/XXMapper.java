@@ -6,5 +6,5 @@ package dijkspicy.ms.server.persistence.mapper;
  * @author dijkspicy
  * @date 2018/6/25
  */
-public class XXMapper {
+public interface XXMapper {
 }

@@ -1,9 +1,6 @@
 package dijkspicy.ms.server.common;
 
-import dijkspicy.ms.server.persistence.DAO;
 import dijkspicy.ms.server.persistence.XXDAO;
-import dijkspicy.ms.server.proxy.XXProxy;
-import org.apache.naming.factory.BeanFactory;
 import org.junit.Test;
 
 /**
@@ -31,6 +28,5 @@ public class IfTest {
 
     @Test
     public void name() {
-        System.out.println(DAO.getInstance(XXDAO.class));
     }
 }

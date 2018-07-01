@@ -1,6 +1,8 @@
 package dijkspicy.ms.server.persistence;
 
-import java.sql.SQLException;
+import com.google.inject.ImplementedBy;
+import dijkspicy.ms.server.persistence.impl.XXDAOCacheImpl;
+import dijkspicy.ms.server.persistence.impl.XXDAOImpl;
 
 /**
  * micro-service-template
@@ -8,6 +10,11 @@ import java.sql.SQLException;
  * @author dijkspicy
  * @date 2018/6/24
  */
+@ImplementedBy(XXDAOImpl.class)
 public interface XXDAO {
-    Object get() throws SQLException;
+    Object get();
+
+    @ImplementedBy(XXDAOCacheImpl.class)
+    public interface XXCacheDAO extends XXDAO {
+    }
 }

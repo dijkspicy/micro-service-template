@@ -1,5 +1,6 @@
 package dijkspicy.ms.server.proxy;
 
+import com.google.inject.Inject;
 import dijkspicy.ms.server.dispatch.ServiceException;
 
 /**
