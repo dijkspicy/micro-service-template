@@ -1,4 +1,4 @@
-package dijkspicy.ms.server.persistence.mapper;
+package dijkspicy.ms.server.dao.mapper;
 
 /**
  * micro-service-template

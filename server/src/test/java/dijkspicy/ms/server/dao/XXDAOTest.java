@@ -1,11 +1,10 @@
-package dijkspicy.ms.server.persistence;
+package dijkspicy.ms.server.dao;
 
 import com.google.inject.Binding;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
-import dijkspicy.ms.server.persistence.impl.XXDAOCacheImpl;
+import dijkspicy.ms.server.dao.impl.XXDAOCacheImpl;
 import org.junit.Test;
 
 import java.sql.SQLException;

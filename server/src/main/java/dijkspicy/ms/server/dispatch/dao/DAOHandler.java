@@ -4,9 +4,6 @@ import dijkspicy.ms.server.dispatch.BaseHandler;
 import dijkspicy.ms.server.dispatch.HttpContext;
 import dijkspicy.ms.server.dispatch.ServiceException;
 import dijkspicy.ms.server.dispatch.ServiceResponse;
-import dijkspicy.ms.server.persistence.XXDAO;
-
-import java.sql.SQLException;
 
 /**
  * DAOHandler

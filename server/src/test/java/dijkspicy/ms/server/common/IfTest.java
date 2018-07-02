@@ -1,6 +1,5 @@
 package dijkspicy.ms.server.common;
 
-import dijkspicy.ms.server.persistence.XXDAO;
 import org.junit.Test;
 
 /**

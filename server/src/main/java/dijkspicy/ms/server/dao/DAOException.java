@@ -1,4 +1,4 @@
-package dijkspicy.ms.server.persistence;
+package dijkspicy.ms.server.dao;
 
 import dijkspicy.ms.server.dispatch.ServiceException;
 

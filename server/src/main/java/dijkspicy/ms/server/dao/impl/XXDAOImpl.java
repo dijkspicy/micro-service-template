@@ -1,8 +1,8 @@
-package dijkspicy.ms.server.persistence.impl;
+package dijkspicy.ms.server.dao.impl;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import dijkspicy.ms.server.persistence.XXDAO;
+import dijkspicy.ms.server.dao.XXDAO;
 
 /**
  * micro-service-template
