@@ -40,7 +40,7 @@ public class Environment {
 
     static {
         try {
-            Path envFilePath = getEnvFilePath();
+            Path envFilePath = getEnvFilePath().toAbsolutePath();
             Map<String, EnvironmentConfig> configMap = MAPPER.readValue(envFilePath.toFile(), new TypeReference<Map<String, EnvironmentConfig>>() {
             });
             ENVIRONMENT_MAP.putAll(configMap);

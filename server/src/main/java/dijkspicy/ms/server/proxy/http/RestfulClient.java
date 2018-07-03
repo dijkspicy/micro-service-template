@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
@@ -37,15 +36,22 @@ public class RestfulClient implements Restful {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestfulClient.class);
     private CredentialConfig credentialConfig;
     private RequestConfig requestConfig;
+    private CloseableHttpClient httpClient;
+
+    public RestfulClient() {
+    }
+
+    public RestfulClient(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     public RestfulClient setCredentials(String user, String pass) {
         return this.setCredentials(AuthSchemesEnum.BASIC, user, pass);
     }
 
     public RestfulClient setCredentials(AuthSchemesEnum auth, String user, String pass) {
-        Credentials credentials = new UsernamePasswordCredentials(user, pass);
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user, pass));
 
         RegistryBuilder<AuthSchemeProvider> authRegistryBuilder = RegistryBuilder.create();
         Optional.ofNullable(auth)
@@ -161,15 +167,18 @@ public class RestfulClient implements Restful {
         } while (true);
     }
 
-    private CloseableHttpResponse execute(HttpUriRequest request, HttpClientContext context) throws IOException {
+    private synchronized CloseableHttpResponse execute(HttpUriRequest request, HttpClientContext context) throws IOException {
         URI uri = request.getURI();
         String schema = uri.getScheme();
         String host = uri.getHost();
-        boolean needCertificate = "https".equals(schema) && StringUtils.isNoneBlank(host)
-                && !"127.0.0.1".equals(host) && !"localhost".equals(host) && !"0.0.0.0".equals(host);
-        CloseableHttpClient closeableHttpClient = needCertificate
-                ? this.getHttpsClient(host)
-                : this.getHttpClient();
-        return closeableHttpClient.execute(request, context);
+        return Optional.ofNullable(this.httpClient)
+                .orElseGet(() -> {
+                    boolean needCertificate = "https".equals(schema) && StringUtils.isNoneBlank(host)
+                            && !"127.0.0.1".equals(host) && !"localhost".equals(host) && !"0.0.0.0".equals(host);
+                    return this.httpClient = needCertificate
+                            ? this.getHttpsClient(host)
+                            : this.getHttpClient();
+                })
+                .execute(request, context);
     }
 }
