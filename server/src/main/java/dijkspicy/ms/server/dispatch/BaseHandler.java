@@ -1,14 +1,14 @@
 package dijkspicy.ms.server.dispatch;
 
-import dijkspicy.ms.server.common.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.util.Optional;
 import java.util.function.Function;
+
+import dijkspicy.ms.server.common.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * BaseHandler<T>
@@ -19,17 +19,25 @@ import java.util.function.Function;
  */
 public abstract class BaseHandler<T> {
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseHandler.class);
-    private static final Function<Type, Class> GENERIC_MAPPER = type -> {
+    private static final Function<Type, Class> GENERIC_MAPPING = type -> {
         ParameterizedType parameterizedType = null;
-        while (type != null) {
-            if (type instanceof ParameterizedType && BaseHandler.class == ((ParameterizedType) type).getRawType()) {
-                parameterizedType = (ParameterizedType) type;
-                break;
+        do {
+            if (type instanceof ParameterizedType) {
+                Type rawType = ((ParameterizedType) type).getRawType();
+                if (BaseHandler.class == rawType) {
+                    parameterizedType = (ParameterizedType) type;
+                    break;
+                } else if (rawType instanceof Class) {
+                    type = ((Class) rawType).getGenericSuperclass();
+                    continue;
+                }
             }
             if (type instanceof Class) {
                 type = ((Class) type).getGenericSuperclass();
+                continue;
             }
-        }
+            break;
+        } while (type != null);
 
         if (parameterizedType != null && parameterizedType.getActualTypeArguments().length != 0) {
             Type t = parameterizedType.getActualTypeArguments()[0];
@@ -39,6 +47,7 @@ public abstract class BaseHandler<T> {
         }
         return ServiceResponse.class;
     };
+
     private final Class<T> responseType;
 
     /**
@@ -46,7 +55,7 @@ public abstract class BaseHandler<T> {
      */
     @SuppressWarnings("unchecked")
     protected BaseHandler() {
-        this.responseType = GENERIC_MAPPER.apply(this.getClass());
+        this.responseType = GENERIC_MAPPING.apply(this.getClass());
     }
 
     /**
@@ -142,14 +151,15 @@ public abstract class BaseHandler<T> {
     }
 
     private T getResponseWithException(HttpContext context, ServiceException exp) {
-        T out = Optional.ofNullable(this.doFailureLogic(context, exp)).orElseGet(() -> {
-            try {
-                return this.responseType.newInstance();
-            } catch (Exception e) {
-                LOGGER.info("Failed to new instance of " + this.responseType.getSimpleName());
-            }
-            return null;
-        });
+        T out = Optional.ofNullable(this.doFailureLogic(context, exp))
+                .orElseGet(() -> {
+                    try {
+                        return this.responseType.newInstance();
+                    } catch (Exception e) {
+                        LOGGER.info("Failed to new instance of " + this.responseType.getSimpleName());
+                    }
+                    return null;
+                });
         if (out instanceof ServiceResponse) {
             ((ServiceResponse) out)
                     .setRetCode(exp.getRetCode())
