@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.calcite.sql.validate.SqlConformanceEnum;
+
 
 /**
  * Connector
@@ -26,7 +28,8 @@ public enum Connector {
             Properties info = new Properties();
             info.setProperty("model", this.checkModel(json));
             try {
-                return DriverManager.getConnection("jdbc:calcite:", info);
+                String jdbcParam = "conformance=" + SqlConformanceEnum.LENIENT;
+                return DriverManager.getConnection("jdbc:calcite:" + jdbcParam, info);
             } catch (SQLException e) {
                 return null;
             }

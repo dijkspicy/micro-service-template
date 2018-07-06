@@ -86,9 +86,9 @@ public abstract class BaseHandler<T> {
         this.writeFailureMessage(exp);
         T out = this.getResponseWithException(context, exp);
 
-        LOGGER.error("\r\n-------------------ERROR-----------------");
+        LOGGER.error("-------------------ERROR-----------------");
         LOGGER.error("\r\n" + this, exp);
-        LOGGER.error("\r\n-----------------------------------------");
+        LOGGER.error("-----------------------------------------");
         return out;
     }
 

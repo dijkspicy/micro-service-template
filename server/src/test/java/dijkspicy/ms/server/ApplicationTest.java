@@ -1,10 +1,10 @@
 package dijkspicy.ms.server;
 
-import org.junit.Test;
-
 import java.sql.*;
 import java.util.Properties;
 import java.util.StringJoiner;
+
+import org.junit.Test;
 
 /**
  * ApplicationTest
@@ -20,7 +20,7 @@ public class ApplicationTest {
 
         Connection connection = DriverManager.getConnection("jdbc:avatica:remote:url=http://localhost:8443/ms/jdbc/model");
 
-        String sql = "select * from DEPTS";
+        String sql = "select * from SDEPTS";
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             ResultSetMetaData metaData = resultSet.getMetaData();
