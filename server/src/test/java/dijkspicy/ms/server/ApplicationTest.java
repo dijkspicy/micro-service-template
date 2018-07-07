@@ -19,15 +19,21 @@ public class ApplicationTest {
 
         Connection connection = DriverManager.getConnection("jdbc:avatica:remote:url=http://localhost:8443/ms/jdbc/model");
 
-        String sql = "select count(*) from SDEPTS";
+        String sql = "select * from EMPS";
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
-            while (resultSet.next()) {  //while控制行数
-                StringJoiner sb = new StringJoiner("\t");
-                for (int i = 1; i <= columnCount; i++) {//for循环控制列数
-                    sb.add(String.valueOf(resultSet.getObject(i)));
+            StringJoiner sb = new StringJoiner("\t");
+            for (int i = 0; i < columnCount; i++) {
+                sb.add(metaData.getColumnName(i + 1));
+            }
+            System.out.println(sb);
+            while (resultSet.next()) {
+                sb = new StringJoiner("\t");
+                for (int i = 1; i <= columnCount; i++) {
+                    String newElement = String.valueOf(resultSet.getObject(i));
+                    sb.add(newElement);
                 }
                 System.out.println(sb);
             }
