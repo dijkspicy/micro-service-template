@@ -28,7 +28,7 @@ import static org.apache.calcite.jdbc.Driver.CONNECT_STRING_PREFIX;
  * @date 2018/6/11
  */
 public class CalciteConnector {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(CalciteConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CalciteConnector.class);
     private static Field metaField;
 
     static {
@@ -53,8 +53,8 @@ public class CalciteConnector {
 
         if (this.connection instanceof AvaticaConnection && this.connection instanceof CalciteConnection) {
             this.meta = this.createMeta((AvaticaConnection) this.connection);
+            this.service = new LocalService(this.meta);
             this.rootSchema = ((CalciteConnection) this.connection).getRootSchema();
-            ((AvaticaConnection) this.connection).setService(this.service = new LocalService(this.meta));
         } else {
             try {
                 this.connection.close();

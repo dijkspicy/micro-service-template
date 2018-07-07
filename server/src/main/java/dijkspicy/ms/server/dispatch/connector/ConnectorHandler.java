@@ -4,13 +4,11 @@ import dijkspicy.ms.server.dispatch.BaseHandler;
 import dijkspicy.ms.server.dispatch.HttpContext;
 import dijkspicy.ms.server.dispatch.ServiceException;
 import org.apache.calcite.avatica.remote.LocalJsonService;
-import org.apache.calcite.avatica.remote.Service;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -22,19 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @date 2018/6/6
  */
 public class ConnectorHandler extends BaseHandler<String> {
-    private static final Method ACCEPT_METHOD;
-
-    static {
-        Method temp = null;
-        try {
-            temp = Service.Request.class.getDeclaredMethod("accept", Service.class);
-            temp.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            LOGGER.error("Failed to find accept method for request");
-        }
-        ACCEPT_METHOD = temp;
-    }
-
     private final String type;
     private String data;
 
