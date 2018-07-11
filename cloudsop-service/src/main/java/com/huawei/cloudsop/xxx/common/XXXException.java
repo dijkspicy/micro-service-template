@@ -22,16 +22,16 @@ public abstract class XXXException extends RuntimeException implements Returnabl
     }
 
     public final int getHttpCode() {
-        return this.ret.getHttpCode();
+        return this.ret.httpCode;
     }
 
     @Override
     public final int getRetCode() {
-        return this.ret.getRetCode();
+        return this.ret.retCode;
     }
 
     @Override
     public final String getRetInfo() {
-        return "[" + this.ret.getRetInfo() + "] " + this.getMessage();
+        return "[" + this.ret.retInfo + "] " + this.getMessage();
     }
 }

@@ -1,18 +1,25 @@
 package com.huawei.cloudsop.xxx.dispatch;
 
-import com.huawei.cloudsop.common.HttpContext;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.ArrayType;
+import com.fasterxml.jackson.databind.type.CollectionLikeType;
+import com.fasterxml.jackson.databind.type.MapLikeType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.huawei.bsp.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.Timer;
 import com.huawei.cloudsop.xxx.common.XXXException;
+import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.InternalServerException;
-import com.huawei.cloudsop.xxx.model.XXXResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 /**
  * BaseHandler
@@ -20,45 +27,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author dijkspicy
  * @date 2018/6/1
  */
-public abstract class BaseHandler<T extends XXXResponse> {
+public abstract class BaseHandler<T> {
     protected static final Logger LOGGER = LoggerFactory.getLogger(BaseHandler.class);
-    private static final Map<Class<? extends BaseHandler>, Class<? extends XXXResponse>> GENERIC_TYPE = new ConcurrentHashMap<>();
-    private final Class<T> responseType;
-
-    @SuppressWarnings("unchecked")
-    protected BaseHandler() {
-        this.responseType = (Class<T>) GENERIC_TYPE.computeIfAbsent(this.getClass(), clazz -> {
-            Type type = clazz;
-            ParameterizedType parameterizedType = null;
-            do {
-                if (type instanceof ParameterizedType) {
-                    Type rawType = ((ParameterizedType) type).getRawType();
-                    if (BaseHandler.class == rawType) {
-                        parameterizedType = (ParameterizedType) type;
-                        break;
-                    } else if (rawType instanceof Class) {
-                        type = ((Class) rawType).getGenericSuperclass();
-                        continue;
-                    }
-                }
-                if (type instanceof Class) {
-                    type = ((Class) type).getGenericSuperclass();
-                    continue;
-                }
-                break;
-            } while (type != null);
-
-            if (parameterizedType != null && parameterizedType.getActualTypeArguments().length != 0) {
-                Type t = parameterizedType.getActualTypeArguments()[0];
-                try {
-                    return (Class<? extends XXXResponse>) ((Class<?>) t).newInstance().getClass();
-                } catch (Exception e) {
-                    throw new InternalServerException("Invalid generic response for handler: " + parameterizedType);
-                }
-            }
-            return XXXResponse.class;
-        });
-    }
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final Injector INJECTOR = Guice.createInjector(binder -> {
+        binder.bind(Boolean.class).toInstance(false);
+        binder.bind(Byte.class).toInstance((byte) 0);
+        binder.bind(Character.class).toInstance('0');
+        binder.bind(Double.class).toInstance(0D);
+        binder.bind(Float.class).toInstance(0F);
+        binder.bind(Integer.class).toInstance(0);
+        binder.bind(Long.class).toInstance(0L);
+        binder.bind(Number.class).toInstance(0);
+        binder.bind(Short.class).toInstance((short) 0);
+    });
 
     /**
      * 执行逻辑
@@ -77,25 +59,18 @@ public abstract class BaseHandler<T extends XXXResponse> {
         } catch (XXXException e) {
             exp = e;
         } catch (Exception e) {
-            exp = new InternalServerException("Unknown exception", e);
+            exp = new InternalServerException("Unknown exception: " + e.getMessage(), e);
         } catch (Throwable e) {
-            exp = new InternalServerException("Unknown error", e);
+            exp = new InternalServerException("Unknown error: " + e.getMessage(), e);
         } finally {
             this.doPost();
         }
 
         context.setResponseStatus(exp.getHttpCode());
         this.writeFailureMessage(exp);
-        T out = this.getResponseWithException(exp);
-
         LOGGER.error("-------------------ERROR-----------------\r\n" + this, exp);
         LOGGER.error("-----------------------------------------");
-        return out;
-    }
-
-    @Override
-    public String toString() {
-        return "[" + this.getClass().getSimpleName() + "<" + this.responseType.getSimpleName() + ">@" + this.hashCode() + "]";
+        return this.getResponseWithException(context, exp);
     }
 
     /**
@@ -140,15 +115,47 @@ public abstract class BaseHandler<T extends XXXResponse> {
 
     }
 
-    private T getResponseWithException(XXXException exp) {
-        try {
-            T out = this.responseType.newInstance();
-            out.setRetCode(exp.getRetCode());
-            out.setRetInfo(exp.getRetInfo());
-            return out;
-        } catch (Exception e) {
-            throw new InternalServerException("Failed to new instance of " + this.responseType.getSimpleName());
+    /**
+     * 失败之后如果需要有特殊的返回，则重载该方法进行自定义
+     *
+     * @param context 请求体
+     * @param exp     失败异常
+     * @return 响应
+     */
+    protected T doFailureLogic(HttpContext context, XXXException exp) {
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private T getResponseWithException(HttpContext context, XXXException exp) {
+        T out = Optional.ofNullable(this.doFailureLogic(context, exp))
+                .orElseGet(() -> {
+                    Type type = this.getClass().getGenericSuperclass();
+                    if (type instanceof Class) {
+                        if (type == BaseHandler.class) {
+                            return (T) new XXXResponse();
+                        }
+                        throw new InternalServerException("Concrete handler without actual type information: " + type);
+                    }
+                    JavaType javaType = TypeFactory.defaultInstance()
+                            .constructType(((ParameterizedType) type).getActualTypeArguments()[0]);
+                    try {
+                        System.out.println(javaType);
+                        return javaType instanceof CollectionLikeType || javaType instanceof ArrayType
+                                ? OBJECT_MAPPER.readValue("[]", javaType)
+                                : javaType instanceof MapLikeType
+                                ? OBJECT_MAPPER.readValue("{}", javaType)
+                                : (T) INJECTOR.getInstance(javaType.getRawClass());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new InternalServerException("Invalid generic response for handler: " + type);
+                    }
+                });
+        if (out instanceof XXXResponse) {
+            ((XXXResponse) out).setRetCode(exp.getRetCode());
+            ((XXXResponse) out).setRetInfo(exp.getRetInfo());
         }
+        return out;
     }
 }
 
