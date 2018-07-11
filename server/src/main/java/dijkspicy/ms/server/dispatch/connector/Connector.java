@@ -1,6 +1,5 @@
 package dijkspicy.ms.server.dispatch.connector;
 
-import dijkspicy.ms.server.dispatch.ServiceException;
 import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.remote.LocalService;
@@ -27,8 +26,8 @@ import static org.apache.calcite.jdbc.Driver.CONNECT_STRING_PREFIX;
  * @author dijkspicy
  * @date 2018/6/11
  */
-public class CalciteConnector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CalciteConnector.class);
+public class Connector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Connector.class);
     private static Field metaField;
 
     static {
@@ -36,24 +35,23 @@ public class CalciteConnector {
     }
 
     private final Connection connection;
-    private final Meta meta;
     private final SchemaPlus rootSchema;
     private final Service service;
 
-    public CalciteConnector() {
+    public Connector() {
         this(new Properties());
     }
 
-    public CalciteConnector(Properties properties) {
+    public Connector(Properties properties) {
         try {
             this.connection = DriverManager.getConnection(CONNECT_STRING_PREFIX, properties);
         } catch (SQLException e) {
-            throw new ServiceException("Failed to get connection of " + CONNECT_STRING_PREFIX, e);
+            throw new ConnectorException("Failed to get connection of " + CONNECT_STRING_PREFIX, e);
         }
 
         if (this.connection instanceof AvaticaConnection && this.connection instanceof CalciteConnection) {
-            this.meta = this.createMeta((AvaticaConnection) this.connection);
-            this.service = new LocalService(this.meta);
+            Meta meta = this.createMeta((AvaticaConnection) this.connection);
+            this.service = new LocalService(meta);
             this.rootSchema = ((CalciteConnection) this.connection).getRootSchema();
         } else {
             try {
@@ -61,16 +59,12 @@ public class CalciteConnector {
             } catch (SQLException ignored) {
             }
 
-            throw new ServiceException("Got invalid connection: " + this.connection.getClass());
+            throw new ConnectorException("Got invalid connection: " + this.connection.getClass());
         }
     }
 
     public Connection getConnection() {
         return connection;
-    }
-
-    public Meta getMeta() {
-        return meta;
     }
 
     public SchemaPlus getRootSchema() {
@@ -82,7 +76,7 @@ public class CalciteConnector {
     }
 
     private Meta createMeta(AvaticaConnection connection) {
-        synchronized (CalciteConnector.this) {
+        synchronized (Connector.this) {
             Optional.ofNullable(metaField)
                     .orElseGet(() -> {
                         try {
@@ -90,14 +84,14 @@ public class CalciteConnector {
                             metaField.setAccessible(true);
                             return metaField;
                         } catch (NoSuchFieldException e) {
-                            throw new ServiceException("No 'meta' field declared in " + AvaticaConnection.class, e);
+                            throw new ConnectorException("No 'meta' field declared in " + AvaticaConnection.class, e);
                         }
                     });
         }
         try {
             return (Meta) metaField.get(connection);
         } catch (IllegalAccessException e) {
-            throw new ServiceException("Failed to get meta from connection: " + connection, e);
+            throw new ConnectorException("Failed to get meta from connection: " + connection, e);
         }
     }
 }

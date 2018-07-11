@@ -1,5 +1,6 @@
 package dijkspicy.ms.server.dispatch.connector;
 
+import dijkspicy.ms.server.common.errors.InternalServerException;
 import dijkspicy.ms.server.dispatch.BaseHandler;
 import dijkspicy.ms.server.dispatch.HttpContext;
 import dijkspicy.ms.server.dispatch.ServiceException;
@@ -37,15 +38,15 @@ public class ConnectorHandler extends BaseHandler<String> {
         try (InputStream is = context.getHttpServletRequest().getInputStream()) {
             this.data = IOUtils.toString(is, UTF_8);
         } catch (IOException e) {
-            throw new ServiceException("Failed to load request body", e);
+            throw new InternalServerException("Failed to load request body", e);
         }
 
         if (StringUtils.isBlank(this.type)) {
-            throw new ServiceException("Connector type can't be null or empty");
+            throw new InternalServerException("Connector type can't be null or empty");
         }
 
         if (StringUtils.isBlank(this.data)) {
-            throw new ServiceException("Connector data can't be null or empty");
+            throw new InternalServerException("Connector data can't be null or empty");
         }
     }
 
@@ -55,19 +56,19 @@ public class ConnectorHandler extends BaseHandler<String> {
             LocalJsonService service = new LocalJsonService(MockConnector.TQL.connector.getService());
             return service.apply(this.data);
         } catch (Exception e) {
-            throw new ServiceException("Failed to accept service: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to accept service: " + e.getMessage(), e);
         }
     }
 
     private enum MockConnector {
         TQL;
 
-        public final CalciteConnector connector;
+        public final Connector connector;
 
         MockConnector() {
             Properties info = new Properties();
             info.setProperty("model", "server/src/main/data/model.json");
-            connector = new CalciteConnector(info);
+            connector = new Connector(info);
         }
     }
 }

@@ -1,4 +1,4 @@
-package dijkspicy.ms.server.dispatch;
+package com.huawei.cloudsop.xxx.common;
 
 /**
  * ServiceException
@@ -6,32 +6,32 @@ package dijkspicy.ms.server.dispatch;
  * @author dijkspicy
  * @date 2018/6/18
  */
-public abstract class ServiceException extends RuntimeException implements Returnable {
+public abstract class XXXException extends RuntimeException implements Returnable {
 
     private static final long serialVersionUID = -1662594400955029784L;
     private final Ret ret;
 
-    protected ServiceException(Ret ret, String msg) {
+    protected XXXException(Ret ret, String msg) {
         super(msg);
         this.ret = ret;
     }
 
-    protected ServiceException(Ret ret, String msg, Throwable e) {
+    protected XXXException(Ret ret, String msg, Throwable e) {
         super(msg, e);
         this.ret = ret;
     }
 
     public final int getHttpCode() {
-        return this.ret.httpCode;
+        return this.ret.getHttpCode();
     }
 
     @Override
     public final int getRetCode() {
-        return this.ret.retCode;
+        return this.ret.getRetCode();
     }
 
     @Override
     public final String getRetInfo() {
-        return "[" + this.ret.retInfo + "] " + this.getMessage();
+        return "[" + this.ret.getRetInfo() + "] " + this.getMessage();
     }
 }

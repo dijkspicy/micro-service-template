@@ -1,14 +1,15 @@
 package dijkspicy.ms.server.dispatch;
 
+import dijkspicy.ms.server.common.Timer;
+import dijkspicy.ms.server.common.errors.InternalServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.util.Optional;
 import java.util.function.Function;
-
-import dijkspicy.ms.server.common.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * BaseHandler<T>
@@ -75,9 +76,9 @@ public abstract class BaseHandler<T> {
         } catch (ServiceException e) {
             exp = e;
         } catch (Exception e) {
-            exp = new ServiceException("Unknown exception", e);
+            exp = new InternalServerException("Unknown exception", e);
         } catch (Throwable e) {
-            exp = new ServiceException("Unknown error", e);
+            exp = new InternalServerException("Unknown error", e);
         } finally {
             this.doPost();
         }
@@ -86,8 +87,7 @@ public abstract class BaseHandler<T> {
         this.writeFailureMessage(exp);
         T out = this.getResponseWithException(context, exp);
 
-        LOGGER.error("-------------------ERROR-----------------");
-        LOGGER.error("\r\n" + this, exp);
+        LOGGER.error("-------------------ERROR-----------------\r\n" + this, exp);
         LOGGER.error("-----------------------------------------");
         return out;
     }

@@ -29,4 +29,9 @@ public class ServiceResponse implements Returnable {
         this.retInfo = retInfo;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return this.serialize();
+    }
 }

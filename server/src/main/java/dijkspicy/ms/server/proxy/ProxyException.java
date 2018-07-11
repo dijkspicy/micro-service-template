@@ -1,6 +1,5 @@
 package dijkspicy.ms.server.proxy;
 
-import com.google.inject.Inject;
 import dijkspicy.ms.server.dispatch.ServiceException;
 
 /**
@@ -10,6 +9,8 @@ import dijkspicy.ms.server.dispatch.ServiceException;
  * @date 2018/6/8
  */
 public class ProxyException extends ServiceException {
+    private static final long serialVersionUID = 8005733798509838931L;
+
     public ProxyException(String msg) {
         super(PROXY_ERROR, msg);
     }
