@@ -9,6 +9,7 @@
         <module>server</module>
         <module>release</module>
         <module>test</module>
+        <module>cloudsop-service</module>
     </modules>
     <packaging>pom</packaging>
     <name>Micro-Service-Template</name>
@@ -23,6 +24,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.25</version>
         </dependency>
 
         <!-- test dependencies below -->
