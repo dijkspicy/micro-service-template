@@ -10,8 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * micro-service-template
@@ -161,15 +160,60 @@ public class BaseHandlerTest {
         assertEquals("[Internal Server Error] Unknown exception: 123", ((XXXResponse) out).getRetInfo());
     }
 
+    @Test
+    public void execute_cannt_instance() {
+        try {
+            new BaseHandler<MockResposne>() {
+                @Override
+                protected MockResposne doMainLogic(HttpContext context) throws XXXException {
+                    throw new RuntimeException("123");
+                }
+            }.execute(mockHttpContext());
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(e.getMessage().startsWith("Invalid generic response for handler:"));
+        }
+    }
+
+    @Test
+    public void execute_not_extend_two() {
+        try {
+            new MockHandlerWithError<Boolean>() {
+            }.execute(mockHttpContext());
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(e.getMessage().startsWith("Concrete handler must extend BaseHandler:"));
+        }
+    }
+
+    @Test
+    public void execute_not_extends_a_class() {
+        try {
+            new MockHandlerWithError() {
+            }.execute(mockHttpContext());
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(e.getMessage().startsWith("Concrete handler without actual type information:"));
+        }
+    }
+
     private static HttpContext mockHttpContext() {
         return new HttpContext();
     }
 
-    static abstract class MockHandler<T> extends BaseHandler<T> {
+    static class MockHandlerWithError<T> extends BaseHandler<T> {
 
+        @Override
+        protected T doMainLogic(HttpContext context) throws XXXException {
+            throw new RuntimeException("123");
+        }
     }
 
-    static abstract class Mock2Handler<R, T> extends BaseHandler<T> {
-
+    static class MockResposne extends XXXResponse {
+        public MockResposne(int a) {
+        }
     }
 }

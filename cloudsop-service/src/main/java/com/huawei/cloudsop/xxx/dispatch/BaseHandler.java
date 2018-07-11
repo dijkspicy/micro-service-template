@@ -135,20 +135,21 @@ public abstract class BaseHandler<T> {
                         if (type == BaseHandler.class) {
                             return (T) new XXXResponse();
                         }
-                        throw new InternalServerException("Concrete handler without actual type information: " + type);
+                        throw new IllegalArgumentException("Concrete handler without actual type information: " + type);
+                    }
+                    if (((ParameterizedType) type).getRawType() != BaseHandler.class) {
+                        throw new IllegalArgumentException("Concrete handler must extend BaseHandler: " + type);
                     }
                     JavaType javaType = TypeFactory.defaultInstance()
                             .constructType(((ParameterizedType) type).getActualTypeArguments()[0]);
                     try {
-                        System.out.println(javaType);
                         return javaType instanceof CollectionLikeType || javaType instanceof ArrayType
                                 ? OBJECT_MAPPER.readValue("[]", javaType)
                                 : javaType instanceof MapLikeType
                                 ? OBJECT_MAPPER.readValue("{}", javaType)
                                 : (T) INJECTOR.getInstance(javaType.getRawClass());
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new InternalServerException("Invalid generic response for handler: " + type);
+                        throw new IllegalArgumentException("Invalid generic response for handler: " + type, e);
                     }
                 });
         if (out instanceof XXXResponse) {
