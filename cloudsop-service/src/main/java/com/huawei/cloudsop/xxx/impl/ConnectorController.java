@@ -1,7 +1,7 @@
 package com.huawei.cloudsop.xxx.impl;
 
 
-import com.huawei.bsp.common.HttpContext;
+import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.dispatch.connector.ConnectorHandler;
 
 /**

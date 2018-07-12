@@ -1,6 +1,6 @@
 package com.huawei.cloudsop.xxx.dispatch.connector;
 
-import com.huawei.bsp.common.HttpContext;
+import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.dispatch.BaseHandler;
 

@@ -17,7 +17,7 @@ import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.huawei.bsp.common.HttpContext;
+import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.Timer;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;

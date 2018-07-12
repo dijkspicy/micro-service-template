@@ -1,4 +1,4 @@
-package com.huawei.bsp.common;
+package com.huawei.bsp.roa.common;
 
 /**
  * HttpContext

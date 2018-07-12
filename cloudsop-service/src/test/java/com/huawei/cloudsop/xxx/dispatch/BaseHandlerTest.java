@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.huawei.bsp.common.HttpContext;
+import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.BadRequestException;
