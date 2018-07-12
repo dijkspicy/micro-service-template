@@ -1,17 +1,15 @@
-package com.huawei.cloudsop.XXXservice.dispatch;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-
-import mockit.Injectable;
-import org.junit.Test;
+package com.huawei.cloudsop.xxx.dispatch;
 
 import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.BadRequestException;
-import com.huawei.cloudsop.xxx.dispatch.BaseHandler;
+import mockit.Injectable;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 

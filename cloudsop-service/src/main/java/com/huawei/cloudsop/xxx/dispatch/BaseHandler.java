@@ -1,11 +1,5 @@
 package com.huawei.cloudsop.xxx.dispatch;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.net.HttpURLConnection;
-import java.util.Optional;
-
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.ArrayType;
@@ -14,14 +8,19 @@ import com.fasterxml.jackson.databind.type.MapLikeType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.Timer;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.InternalServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.net.HttpURLConnection;
+import java.util.Optional;
 
 /**
  * BaseHandler
