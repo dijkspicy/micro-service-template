@@ -1,15 +1,17 @@
-package com.huawei.cloudsop.xxx.dispatch;
+package com.huawei.cloudsop.XXXservice.dispatch;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import mockit.Injectable;
 import org.junit.Test;
 
 import com.huawei.bsp.roa.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.BadRequestException;
+import com.huawei.cloudsop.xxx.dispatch.BaseHandler;
 
 import static org.junit.Assert.*;
 
@@ -20,6 +22,9 @@ import static org.junit.Assert.*;
  * @date 2018/7/10
  */
 public class BaseHandlerTest {
+
+    @Injectable
+    private HttpContext httpContext;
 
     @Test
     public void execute_without_concrete_generic_type() {
@@ -43,10 +48,12 @@ public class BaseHandlerTest {
             assertTrue(e.getMessage().startsWith("Concrete handler must has super handler with concrete T"));
         }
 
-        Boolean out2 = new MockNoConcreteGenericTypeHandler<Boolean>(){}.execute(mockHttpContext());
+        Boolean out2 = new MockNoConcreteGenericTypeHandler<Boolean>() {
+        }.execute(mockHttpContext());
         assertNull(out2);
         try {
-            new MockNoConcreteGenericTypeHandler<Boolean>("error"){}.execute(mockHttpContext());
+            new MockNoConcreteGenericTypeHandler<Boolean>("error") {
+            }.execute(mockHttpContext());
             fail();
         } catch (Exception e) {
             e.printStackTrace();
@@ -235,8 +242,8 @@ public class BaseHandlerTest {
         }
     }
 
-    private static HttpContext mockHttpContext() {
-        return new HttpContext();
+    private HttpContext mockHttpContext() {
+        return httpContext;
     }
 
     static class MockTwiceHandler extends MockDirectlyHandler {

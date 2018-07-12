@@ -130,47 +130,47 @@ public abstract class BaseHandler<T> {
 
     @SuppressWarnings("unchecked")
     private T getResponseWithException(HttpContext context, XXXException exp) {
-        T out = Optional.ofNullable(this.doFailureLogic(context, exp))
-                .orElseGet(() -> {
-                    Type type = this.getClass().getGenericSuperclass();
-                    do {
-                        if (type instanceof Class) {
-                            if (type == BaseHandler.class) {
-                                type = XXXResponse.class;
-                                break;
-                            }
-                            type = ((Class) type).getGenericSuperclass();
-                            continue;
-                        }
-
-                        if (type instanceof ParameterizedType) {
-                            Type rawType = ((ParameterizedType) type).getRawType();
-                            if (rawType == BaseHandler.class) {
-                                Type actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
-                                if (!(actualType instanceof TypeVariable)) {
-                                    type = actualType;
-                                    break;
-                                }
-                            } else {
-                                type = rawType;
-                                continue;
-                            }
-                        }
-
-                        throw new IllegalArgumentException("Concrete handler must has super handler with concrete T: " + type);
-                    } while (type != Object.class);
-
-                    JavaType javaType = TypeFactory.defaultInstance().constructType(type);
-                    try {
-                        return javaType instanceof CollectionLikeType || javaType instanceof ArrayType
-                                ? OBJECT_MAPPER.readValue("[]", javaType)
-                                : javaType instanceof MapLikeType
-                                ? OBJECT_MAPPER.readValue("{}", javaType)
-                                : (T) INJECTOR.getInstance(javaType.getRawClass());
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException("Invalid generic response for handler: " + type, e);
+        T out = Optional.ofNullable(this.doFailureLogic(context, exp)).orElseGet(() -> {
+            Type type = this.getClass().getGenericSuperclass();
+            do {
+                if (type instanceof Class) {
+                    if (type == BaseHandler.class) {
+                        type = XXXResponse.class;
+                        break;
                     }
-                });
+                    type = ((Class) type).getGenericSuperclass();
+                    continue;
+                }
+
+                if (type instanceof ParameterizedType) {
+                    Type rawType = ((ParameterizedType) type).getRawType();
+                    if (rawType == BaseHandler.class) {
+                        Type actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
+                        if (!(actualType instanceof TypeVariable)) {
+                            type = actualType;
+                            break;
+                        }
+                    } else {
+                        type = rawType;
+                        continue;
+                    }
+                }
+
+                throw new IllegalArgumentException("Concrete handler must has super handler with concrete T: " + type);
+            }
+            while (type != Object.class);
+
+            JavaType javaType = TypeFactory.defaultInstance().constructType(type);
+            try {
+                return javaType instanceof CollectionLikeType || javaType instanceof ArrayType ?
+                        OBJECT_MAPPER.readValue("[]", javaType) :
+                        javaType instanceof MapLikeType ?
+                                OBJECT_MAPPER.readValue("{}", javaType) :
+                                (T) INJECTOR.getInstance(javaType.getRawClass());
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid generic response for handler: " + type, e);
+            }
+        });
         if (out instanceof XXXResponse) {
             ((XXXResponse) out).setRetCode(exp.getRetCode());
             ((XXXResponse) out).setRetInfo(exp.getRetInfo());
