@@ -20,6 +20,9 @@ import static org.junit.Assert.*;
  */
 public class BaseHandlerTest {
 
+    /**
+     * anonymous handler will return {@link XXXResponse} when exception
+     */
     @Test
     public void execute_anonymous() {
         Object out = new BaseHandler() {
@@ -56,6 +59,9 @@ public class BaseHandlerTest {
         assertEquals(XXXResponse.class, out.getClass());
     }
 
+    /**
+     * anonymous handler know its concrete generic class
+     */
     @Test
     public void execute_anonymous_with_t() {
         String out = new BaseHandler<String>() {
