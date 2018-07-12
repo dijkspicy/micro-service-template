@@ -107,6 +107,9 @@ public class BaseHandlerTest {
         assertTrue(out3.getRetInfo().startsWith("[Internal Server Error] Unknown exception"));
     }
 
+    /**
+     * anonymous handler with some normal interface/simple type will return its right type when exception
+     */
     @Test
     public void execute_with_interface() {
         Object out = new BaseHandler<Map<String, Object>>() {
