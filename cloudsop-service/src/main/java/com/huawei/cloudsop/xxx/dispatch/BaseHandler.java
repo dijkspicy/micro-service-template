@@ -15,6 +15,7 @@ import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.InternalServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -131,15 +132,27 @@ public abstract class BaseHandler<T> {
         T out = Optional.ofNullable(this.doFailureLogic(context, exp))
                 .orElseGet(() -> {
                     Type type = this.getClass().getGenericSuperclass();
-                    if (type instanceof Class) {
-                        if (type == BaseHandler.class) {
-                            return (T) new XXXResponse();
+                    do {
+                        if (type instanceof Class) {
+                            if (type == BaseHandler.class) {
+                                type = ParameterizedTypeImpl.make(BaseHandler.class, new Type[]{XXXResponse.class}, null);
+                                break;
+                            }
+                            type = ((Class) type).getGenericSuperclass();
+                            continue;
+                        } else if (type instanceof ParameterizedType) {
+                            Type rawType = ((ParameterizedType) type).getRawType();
+                            if (rawType instanceof Class) {
+                                if (rawType == BaseHandler.class) {
+                                    break;
+                                }
+                                type = ((Class) rawType).getGenericSuperclass();
+                                continue;
+                            }
                         }
-                        throw new IllegalArgumentException("Concrete handler without actual type information: " + type);
-                    }
-                    if (((ParameterizedType) type).getRawType() != BaseHandler.class) {
-                        throw new IllegalArgumentException("Concrete handler must extend BaseHandler: " + type);
-                    }
+                        throw new IllegalArgumentException("Concrete handler must has super handler with concrete T: " + type);
+                    } while (type != Object.class);
+
                     JavaType javaType = TypeFactory.defaultInstance()
                             .constructType(((ParameterizedType) type).getActualTypeArguments()[0]);
                     try {
