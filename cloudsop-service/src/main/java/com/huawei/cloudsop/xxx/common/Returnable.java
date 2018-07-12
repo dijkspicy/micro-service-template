@@ -1,7 +1,5 @@
 package com.huawei.cloudsop.xxx.common;
 
-import com.huawei.cloudsop.xxx.model.XXXResponse;
-
 /**
  * Returnable
  *
@@ -9,6 +7,7 @@ import com.huawei.cloudsop.xxx.model.XXXResponse;
  * @date 2018/6/18
  */
 public interface Returnable {
+
     Ret UNEXPECTED_OK = new Ret(200, 1, "OK");
     Ret OK = new Ret(200, 0, "OK");
     /**
@@ -37,17 +36,15 @@ public interface Returnable {
      */
     String getRetInfo();
 
-    final class Ret extends XXXResponse {
-        private final int httpCode;
+    final class Ret {
+        final int httpCode;
+        final int retCode;
+        final String retInfo;
 
         Ret(int httpCode, int retCode, String retInfo) {
             this.httpCode = httpCode;
-            this.setRetCode(retCode);
-            this.setRetInfo(retInfo);
-        }
-
-        int getHttpCode() {
-            return httpCode;
+            this.retCode = retCode;
+            this.retInfo = retInfo;
         }
     }
 }

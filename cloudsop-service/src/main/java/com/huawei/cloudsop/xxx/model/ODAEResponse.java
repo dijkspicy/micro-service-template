@@ -6,7 +6,7 @@ package com.huawei.cloudsop.xxx.model;
  * @author dijkspicy
  * @date 2018/7/10
  */
-public class XXXResponse {
+public class ODAEResponse {
     private int retCode;
     private String retInfo;
 
@@ -14,17 +14,15 @@ public class XXXResponse {
         return retCode;
     }
 
-    public XXXResponse setRetCode(int retCode) {
+    public void setRetCode(int retCode) {
         this.retCode = retCode;
-        return this;
     }
 
     public String getRetInfo() {
         return retInfo;
     }
 
-    public XXXResponse setRetInfo(String retInfo) {
+    public void setRetInfo(String retInfo) {
         this.retInfo = retInfo;
-        return this;
     }
 }

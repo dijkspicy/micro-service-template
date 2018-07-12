@@ -1,4 +1,4 @@
-package com.huawei.cloudsop.common;
+package com.huawei.bsp.common;
 
 /**
  * HttpContext
