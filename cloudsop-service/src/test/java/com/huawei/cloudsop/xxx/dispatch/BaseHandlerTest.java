@@ -1,14 +1,15 @@
 package com.huawei.cloudsop.xxx.dispatch;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+
+import org.junit.Test;
+
 import com.huawei.bsp.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.BadRequestException;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -19,6 +20,55 @@ import static org.junit.Assert.*;
  * @date 2018/7/10
  */
 public class BaseHandlerTest {
+
+    @Test
+    public void execute_without_concrete_generic_type() {
+        Object out = new MockNoConcreteGenericTypeHandler().execute(mockHttpContext());
+        assertNull(out);
+        try {
+            new MockNoConcreteGenericTypeHandler("error").execute(mockHttpContext());
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(e.getMessage().startsWith("Concrete handler must has super handler with concrete T"));
+        }
+
+        String out1 = new MockNoConcreteGenericTypeHandler<String>().execute(mockHttpContext());
+        assertNull(out1);
+        try {
+            new MockNoConcreteGenericTypeHandler<String>("error").execute(mockHttpContext());
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(e.getMessage().startsWith("Concrete handler must has super handler with concrete T"));
+        }
+
+        Boolean out2 = new MockNoConcreteGenericTypeHandler<Boolean>(){}.execute(mockHttpContext());
+        assertNull(out2);
+        try {
+            new MockNoConcreteGenericTypeHandler<Boolean>("error"){}.execute(mockHttpContext());
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(e.getMessage().startsWith("Concrete handler must has super handler with concrete T"));
+        }
+    }
+
+    /**
+     * directly extend BaseHandler with concrete generic type
+     */
+    @Test
+    public void execute_directly() {
+        String out = new MockDirectlyHandler().execute(mockHttpContext());
+        assertEquals("OK", out);
+        out = new MockDirectlyHandler("error").execute(mockHttpContext());
+        assertEquals("", out);
+
+        out = new MockTwiceHandler().execute(mockHttpContext());
+        assertEquals("OK", out);
+        out = new MockTwiceHandler("error").execute(mockHttpContext());
+        assertEquals("", out);
+    }
 
     /**
      * anonymous handler will return {@link XXXResponse} when exception
@@ -172,9 +222,9 @@ public class BaseHandlerTest {
     @Test
     public void execute_cannt_instance() {
         try {
-            new BaseHandler<MockResposne>() {
+            new BaseHandler<MockResponse>() {
                 @Override
-                protected MockResposne doMainLogic(HttpContext context) throws XXXException {
+                protected MockResponse doMainLogic(HttpContext context) throws XXXException {
                     throw new RuntimeException("123");
                 }
             }.execute(mockHttpContext());
@@ -185,44 +235,63 @@ public class BaseHandlerTest {
         }
     }
 
-    @Test
-    public void execute_not_extend_two() {
-        try {
-            new MockHandlerWithError<Boolean>() {
-            }.execute(mockHttpContext());
-            fail();
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue(e.getMessage().startsWith("Concrete handler must extend BaseHandler:"));
-        }
-    }
-
-    @Test
-    public void execute_not_extends_a_class() {
-        try {
-            new MockHandlerWithError() {
-            }.execute(mockHttpContext());
-            fail();
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue(e.getMessage().startsWith("Concrete handler without actual type information:"));
-        }
-    }
-
     private static HttpContext mockHttpContext() {
         return new HttpContext();
     }
 
-    static class MockHandlerWithError<T> extends BaseHandler<T> {
+    static class MockTwiceHandler extends MockDirectlyHandler {
+        public MockTwiceHandler(String error) {
+            super(error);
+        }
 
-        @Override
-        protected T doMainLogic(HttpContext context) throws XXXException {
-            throw new RuntimeException("123");
+        public MockTwiceHandler() {
+            this(null);
         }
     }
 
-    static class MockResposne extends XXXResponse {
-        public MockResposne(int a) {
+    static class MockDirectlyHandler extends BaseHandler<String> {
+
+        private final String error;
+
+        public MockDirectlyHandler(String error) {
+            this.error = error;
+        }
+
+        public MockDirectlyHandler() {
+            this(null);
+        }
+
+        @Override
+        protected String doMainLogic(HttpContext context) throws XXXException {
+            if (this.error != null) {
+                throw new RuntimeException(this.error);
+            }
+            return "OK";
+        }
+    }
+
+    static class MockNoConcreteGenericTypeHandler<T> extends BaseHandler<T> {
+        private final String error;
+
+        public MockNoConcreteGenericTypeHandler(String error) {
+            this.error = error;
+        }
+
+        public MockNoConcreteGenericTypeHandler() {
+            this(null);
+        }
+
+        @Override
+        protected T doMainLogic(HttpContext context) throws XXXException {
+            if (this.error != null) {
+                throw new RuntimeException(this.error);
+            }
+            return null;
+        }
+    }
+
+    static class MockResponse extends XXXResponse {
+        public MockResponse(int a) {
         }
     }
 }

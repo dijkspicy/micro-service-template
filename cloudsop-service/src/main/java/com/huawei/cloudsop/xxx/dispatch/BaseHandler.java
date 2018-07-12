@@ -1,5 +1,11 @@
 package com.huawei.cloudsop.xxx.dispatch;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.ArrayType;
@@ -8,19 +14,14 @@ import com.fasterxml.jackson.databind.type.MapLikeType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.huawei.bsp.common.HttpContext;
 import com.huawei.cloudsop.xxx.common.Timer;
 import com.huawei.cloudsop.xxx.common.XXXException;
 import com.huawei.cloudsop.xxx.common.XXXResponse;
 import com.huawei.cloudsop.xxx.common.errors.InternalServerException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
-
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.util.Optional;
 
 /**
  * BaseHandler
@@ -135,26 +136,31 @@ public abstract class BaseHandler<T> {
                     do {
                         if (type instanceof Class) {
                             if (type == BaseHandler.class) {
-                                type = ParameterizedTypeImpl.make(BaseHandler.class, new Type[]{XXXResponse.class}, null);
+                                type = XXXResponse.class;
                                 break;
                             }
                             type = ((Class) type).getGenericSuperclass();
                             continue;
-                        } else if (type instanceof ParameterizedType) {
+                        }
+
+                        if (type instanceof ParameterizedType) {
                             Type rawType = ((ParameterizedType) type).getRawType();
-                            if (rawType instanceof Class) {
-                                if (rawType == BaseHandler.class) {
+                            if (rawType == BaseHandler.class) {
+                                Type actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
+                                if (!(actualType instanceof TypeVariable)) {
+                                    type = actualType;
                                     break;
                                 }
-                                type = ((Class) rawType).getGenericSuperclass();
+                            } else {
+                                type = rawType;
                                 continue;
                             }
                         }
+
                         throw new IllegalArgumentException("Concrete handler must has super handler with concrete T: " + type);
                     } while (type != Object.class);
 
-                    JavaType javaType = TypeFactory.defaultInstance()
-                            .constructType(((ParameterizedType) type).getActualTypeArguments()[0]);
+                    JavaType javaType = TypeFactory.defaultInstance().constructType(type);
                     try {
                         return javaType instanceof CollectionLikeType || javaType instanceof ArrayType
                                 ? OBJECT_MAPPER.readValue("[]", javaType)
