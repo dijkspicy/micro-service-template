@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>dijkspicy.micro-service-template.base</artifactId>
+    <artifactId>micro-service-template-base</artifactId>
     <name>Micro-Service-Template Base</name>
 
     <dependencies>
