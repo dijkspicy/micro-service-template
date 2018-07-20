@@ -12,10 +12,10 @@ public class DAOException extends ServiceException {
     private static final long serialVersionUID = -8054721846382285781L;
 
     public DAOException(String msg) {
-        super(DAO_ERROR, msg);
+        super(null, msg);
     }
 
     public DAOException(String msg, Throwable e) {
-        super(DAO_ERROR, msg, e);
+        super(null, msg, e);
     }
 }

@@ -1,5 +1,7 @@
 package dijkspicy.ms.server.dispatch;
 
+import dijkspicy.ms.base.Returnable;
+
 /**
  * ServiceResponse
  *
@@ -7,31 +9,45 @@ package dijkspicy.ms.server.dispatch;
  * @date 2018/6/18
  */
 public class ServiceResponse implements Returnable {
-    private int retCode = OK.retCode;
-    private String retInfo = OK.retInfo;
 
-    @Override
-    public int getRetCode() {
-        return this.retCode;
+    private Object data;
+    private int status = OK.status;
+    private String message = OK.message;
+
+    public ServiceResponse() {
     }
 
-    public ServiceResponse setRetCode(int retCode) {
-        this.retCode = retCode;
+    public ServiceResponse(Object data) {
+        this.data = data;
+    }
+
+    @Override
+    public Object getData() {
+        return data;
+    }
+
+    public ServiceResponse setData(Object data) {
+        this.data = data;
         return this;
     }
 
     @Override
-    public String getRetInfo() {
-        return this.retInfo;
+    public int getStatus() {
+        return status;
     }
 
-    public ServiceResponse setRetInfo(String retInfo) {
-        this.retInfo = retInfo;
+    public ServiceResponse setStatus(int status) {
+        this.status = status;
         return this;
     }
 
     @Override
-    public String toString() {
-        return this.serialize();
+    public String getMessage() {
+        return message;
+    }
+
+    public ServiceResponse setMessage(String message) {
+        this.message = message;
+        return this;
     }
 }

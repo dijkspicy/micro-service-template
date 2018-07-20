@@ -14,7 +14,6 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Optional;
 import java.util.Properties;
 
 import static org.apache.calcite.jdbc.Driver.CONNECT_STRING_PREFIX;
@@ -28,10 +27,16 @@ import static org.apache.calcite.jdbc.Driver.CONNECT_STRING_PREFIX;
  */
 public class Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(Connector.class);
-    private static Field metaField;
+    private static final Field META_FIELD;
 
     static {
         LOGGER.warn("Register driver: " + new Driver());
+        try {
+            META_FIELD = AvaticaConnection.class.getDeclaredField("meta");
+            META_FIELD.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new ConnectorException("No 'meta' field declared in " + AvaticaConnection.class, e);
+        }
     }
 
     private final Connection connection;
@@ -76,20 +81,8 @@ public class Connector {
     }
 
     private Meta createMeta(AvaticaConnection connection) {
-        synchronized (Connector.this) {
-            Optional.ofNullable(metaField)
-                    .orElseGet(() -> {
-                        try {
-                            metaField = AvaticaConnection.class.getDeclaredField("meta");
-                            metaField.setAccessible(true);
-                            return metaField;
-                        } catch (NoSuchFieldException e) {
-                            throw new ConnectorException("No 'meta' field declared in " + AvaticaConnection.class, e);
-                        }
-                    });
-        }
         try {
-            return (Meta) metaField.get(connection);
+            return (Meta) META_FIELD.get(connection);
         } catch (IllegalAccessException e) {
             throw new ConnectorException("Failed to get meta from connection: " + connection, e);
         }

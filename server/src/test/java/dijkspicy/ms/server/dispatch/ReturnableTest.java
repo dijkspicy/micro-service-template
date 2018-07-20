@@ -1,6 +1,6 @@
 package dijkspicy.ms.server.dispatch;
 
-import dijkspicy.ms.server.common.errors.BadRequestException;
+import dijkspicy.ms.base.errors.BadRequestException;
 import org.junit.Test;
 
 /**
@@ -18,19 +18,6 @@ public class ReturnableTest {
 
     static class TestLoop extends ServiceResponse {
 
-        @Override
-        public int getRetCode() {
-            return 0;
-        }
-
-        @Override
-        public String getRetInfo() {
-            return "test";
-        }
-
-        public TestLoop getA() {
-            return this;
-        }
 
     }
 }

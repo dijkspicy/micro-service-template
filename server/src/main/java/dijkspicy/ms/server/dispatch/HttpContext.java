@@ -25,4 +25,8 @@ public final class HttpContext {
     public void setResponseStatus(int httpCode) {
         this.response.setStatus(httpCode);
     }
+
+    public HttpServletResponse getHttpServletResponse() {
+        return this.response;
+    }
 }

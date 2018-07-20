@@ -4,12 +4,11 @@
     <artifactId>dijkspicy-micro-service-template</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
+        <module>base</module>
         <module>api</module>
         <module>client</module>
         <module>server</module>
         <module>release</module>
-        <module>test</module>
-        <module>cloudsop-service</module>
     </modules>
     <packaging>pom</packaging>
     <name>Micro-Service-Template</name>

@@ -19,7 +19,7 @@ public class ApplicationTest {
 
         Connection connection = DriverManager.getConnection("jdbc:avatica:remote:url=http://localhost:8443/ms/jdbc/model");
 
-        String sql = "select GENDER from EMPS";
+        String sql = "select * from DEPTS";
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             ResultSetMetaData metaData = resultSet.getMetaData();

@@ -15,6 +15,6 @@ public interface XXDAO {
     Object get();
 
     @ImplementedBy(XXDAOCacheImpl.class)
-    public interface XXCacheDAO extends XXDAO {
+    interface XXCacheDAO extends XXDAO {
     }
 }

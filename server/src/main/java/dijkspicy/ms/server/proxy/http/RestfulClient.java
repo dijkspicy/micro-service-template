@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import dijkspicy.ms.server.common.Timer;
+import dijkspicy.ms.base.Timer;
+import dijkspicy.ms.base.Timer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthSchemeProvider;

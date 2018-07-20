@@ -1,37 +1,30 @@
 package dijkspicy.ms.server.dispatch;
 
+import dijkspicy.ms.base.XXXException;
+
 /**
  * ServiceException
  *
  * @author dijkspicy
  * @date 2018/6/18
  */
-public abstract class ServiceException extends RuntimeException implements Returnable {
+public class ServiceException extends XXXException {
 
-    private static final long serialVersionUID = -1662594400955029784L;
-    private final Ret ret;
+    private static final long serialVersionUID = 2316826068144606907L;
 
-    protected ServiceException(Ret ret, String msg) {
-        super(msg);
-        this.ret = ret;
+    public ServiceException(String msg) {
+        this(null, msg);
     }
 
-    protected ServiceException(Ret ret, String msg, Throwable e) {
-        super(msg, e);
-        this.ret = ret;
+    public ServiceException(String msg, Throwable e) {
+        this(null, msg, e);
     }
 
-    public final int getHttpCode() {
-        return this.ret.httpCode;
+    public ServiceException(Object data, String msg) {
+        super(INTERNAL_SERVER_ERROR, data, msg);
     }
 
-    @Override
-    public final int getRetCode() {
-        return this.ret.retCode;
-    }
-
-    @Override
-    public final String getRetInfo() {
-        return "[" + this.ret.retInfo + "] " + this.getMessage();
+    public ServiceException(Object data, String msg, Throwable e) {
+        super(INTERNAL_SERVER_ERROR, data, msg, e);
     }
 }

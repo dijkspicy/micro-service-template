@@ -1,13 +1,16 @@
 package dijkspicy.ms.server.dispatch.connector;
 
-import dijkspicy.ms.server.common.errors.InternalServerException;
+import dijkspicy.ms.base.errors.InternalServerException;
 import dijkspicy.ms.server.dispatch.BaseHandler;
-import dijkspicy.ms.server.dispatch.HttpContext;
 import dijkspicy.ms.server.dispatch.ServiceException;
+import dijkspicy.ms.server.dispatch.ServiceResponse;
+import org.apache.calcite.avatica.remote.JsonService;
 import org.apache.calcite.avatica.remote.LocalJsonService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -20,7 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @author dijkspicy
  * @date 2018/6/6
  */
-public class ConnectorHandler extends BaseHandler<String> {
+public class ConnectorHandler extends BaseHandler {
     private final String type;
     private String data;
 
@@ -34,8 +37,8 @@ public class ConnectorHandler extends BaseHandler<String> {
     }
 
     @Override
-    protected void doPre(HttpContext context) throws ServiceException {
-        try (InputStream is = context.getHttpServletRequest().getInputStream()) {
+    protected void doPre(HttpServletRequest httpServletRequest) throws ServiceException {
+        try (InputStream is = httpServletRequest.getInputStream()) {
             this.data = IOUtils.toString(is, UTF_8);
         } catch (IOException e) {
             throw new InternalServerException("Failed to load request body", e);
@@ -51,10 +54,10 @@ public class ConnectorHandler extends BaseHandler<String> {
     }
 
     @Override
-    protected String doMainLogic(HttpContext context) throws ServiceException {
+    protected ServiceResponse doMainLogic(HttpServletRequest request, HttpServletResponse response) throws ServiceException {
         try {
-            LocalJsonService service = new LocalJsonService(MockConnector.TQL.connector.getService());
-            return service.apply(this.data);
+            JsonService service = new LocalJsonService(MockConnector.TQL.connector.getService());
+            return new ServiceResponse(service.apply(this.data));
         } catch (Exception e) {
             throw new InternalServerException("Failed to accept service: " + e.getMessage(), e);
         }
