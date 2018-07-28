@@ -60,8 +60,10 @@ public abstract class HttpClientFactory {
         return createSSL(keyStoreConfig, trustStoreConfig, "SSL");
     }
 
-    public static CloseableHttpClient createSSL(KeyStoreConfig keyStoreConfig, TrustStoreConfig trustStoreConfig, String sslType)
-            throws GeneralSecurityException, IOException {
+    public static CloseableHttpClient createSSL(
+            KeyStoreConfig keyStoreConfig,
+            TrustStoreConfig trustStoreConfig,
+            String sslType) throws GeneralSecurityException, IOException {
         RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.create();
         registryBuilder.register("http", PlainConnectionSocketFactory.getSocketFactory());
         ConnectionSocketFactory sslFactory = getConnectionSocketFactory(keyStoreConfig, trustStoreConfig, sslType);
@@ -91,8 +93,9 @@ public abstract class HttpClientFactory {
         return HTTP_CLIENT_MAP.computeIfAbsent(host, i -> {
             EnvironmentConfig environmentConfig = Environment.getEnv(i);
             if (environmentConfig == null) {
-                LOGGER.error("no environment of " + host);
-                return createTrustAll();
+                LOGGER.warn("no environment of " + host);
+                environmentConfig = new EnvironmentConfig()
+                        .setHost(host);
             }
 
             return createCloseableHttpClient(environmentConfig, keyStoreMapping, trustStoreMapping, sslType);
@@ -113,7 +116,8 @@ public abstract class HttpClientFactory {
                                                                Function<Path, KeyStoreConfig> keyStoreMapping,
                                                                Function<Path, TrustStoreConfig> trustStoreMapping,
                                                                String sslType) {
-        return HTTP_CLIENT_MAP.computeIfAbsent(environmentConfig.getHost(), i -> createCloseableHttpClient(environmentConfig, keyStoreMapping, trustStoreMapping, sslType));
+        return HTTP_CLIENT_MAP.computeIfAbsent(environmentConfig.getHost(), i ->
+                createCloseableHttpClient(environmentConfig, keyStoreMapping, trustStoreMapping, sslType));
     }
 
     public static CloseableHttpClient createCloseableHttpClient(EnvironmentConfig environmentConfig,
@@ -144,7 +148,8 @@ public abstract class HttpClientFactory {
 
         SSLContext sslContext = SSLContext.getInstance(sslType);
         sslContext.init(keyManagers, trustManagers, new SecureRandom());
-        return new SSLConnectionSocketFactory(sslContext, SUPPORTED_PROTOCOLS, SUPPORTED_CIPHER_SUITES, VERIFIERS.getHostnameVerifier());
+        return new SSLConnectionSocketFactory(
+                sslContext, SUPPORTED_PROTOCOLS, SUPPORTED_CIPHER_SUITES, VERIFIERS.getHostnameVerifier());
     }
 
     private static KeyManager[] getKeyManagers(KeyStoreConfig keyStoreConfig)

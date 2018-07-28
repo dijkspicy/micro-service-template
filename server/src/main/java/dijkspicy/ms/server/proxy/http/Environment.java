@@ -1,5 +1,14 @@
 package dijkspicy.ms.server.proxy.http;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.jcraft.jsch.*;
+import org.slf4j.LoggerFactory;
+
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,15 +18,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.jcraft.jsch.*;
-import org.slf4j.LoggerFactory;
 
 /**
  * Environment
@@ -68,6 +68,9 @@ public class Environment {
         environments.forEach(Environment::addEnv);
     }
 
+    /**
+     * 如果本地存在证书路径，就不会再下载，此时直接使用host其实就可以了
+     */
     public Path download() throws IOException {
         Path localDirectory = Paths.get(LOCAL_PARENT_DIR, this.host.get()).toAbsolutePath();
         if (Files.exists(localDirectory) && Files.list(localDirectory).findFirst().isPresent()) {
