@@ -1,5 +1,7 @@
 package dijkspicy.ms.server.proxy.http;
 
+import com.alibaba.fastjson.JSON;
+
 import java.util.Map;
 import java.util.function.Function;
 
@@ -51,6 +53,14 @@ public interface Restful {
             this.url = url;
             this.headers = headers;
             this.response = response;
+        }
+
+        public void print() {
+            String sb = this.method +
+                    " " + this.url + "\r\n" +
+                    this.headers + "\r\n" +
+                    JSON.toJSONString(JSON.parseObject(new String(this.response)), true);
+            System.out.println(sb);
         }
     }
 }
