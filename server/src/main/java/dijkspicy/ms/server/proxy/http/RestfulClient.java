@@ -1,13 +1,5 @@
 package dijkspicy.ms.server.proxy.http;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-
-import dijkspicy.ms.base.Timer;
 import dijkspicy.ms.base.Timer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
@@ -27,6 +19,13 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+
 /**
  * RestfulClient
  *
@@ -44,6 +43,18 @@ public class RestfulClient implements Restful {
 
     public RestfulClient(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
+    }
+
+    private static boolean isUnavailable(int statusCode) {
+        return statusCode == HttpURLConnection.HTTP_UNAVAILABLE;
+    }
+
+    private static boolean isServerError(int statusCode) {
+        return statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR;
+    }
+
+    private static boolean isSuccess(int statusCode) {
+        return 200 <= statusCode && statusCode <= 299;
     }
 
     public RestfulClient setCredentials(String user, String pass) {
@@ -74,34 +85,34 @@ public class RestfulClient implements Restful {
     }
 
     @Override
-    public <T> T post(String uri, byte[] request, Map<String, String> headers, Function<byte[], T> callback) {
+    public <T> T post(String uri, byte[] request, Map<String, String> headers, Function<RestfulClientCallback, T> callback) {
         HttpPost req = new HttpPost();
         req.setEntity(new ByteArrayEntity(request));
         return this.send(req, uri, headers, callback);
     }
 
     @Override
-    public <T> T put(String uri, byte[] request, Map<String, String> headers, Function<byte[], T> callback) {
+    public <T> T put(String uri, byte[] request, Map<String, String> headers, Function<RestfulClientCallback, T> callback) {
         HttpPut req = new HttpPut();
         req.setEntity(new ByteArrayEntity(request));
         return this.send(req, uri, headers, callback);
     }
 
     @Override
-    public <T> T patch(String uri, byte[] request, Map<String, String> headers, Function<byte[], T> callback) {
+    public <T> T patch(String uri, byte[] request, Map<String, String> headers, Function<RestfulClientCallback, T> callback) {
         HttpPatch req = new HttpPatch();
         req.setEntity(new ByteArrayEntity(request));
         return this.send(req, uri, headers, callback);
     }
 
     @Override
-    public <T> T delete(String uri, Map<String, String> headers, Function<byte[], T> callback) {
+    public <T> T delete(String uri, Map<String, String> headers, Function<RestfulClientCallback, T> callback) {
         HttpDelete req = new HttpDelete();
         return this.send(req, uri, headers, callback);
     }
 
     @Override
-    public <T> T get(String uri, Map<String, String> headers, Function<byte[], T> callback) {
+    public <T> T get(String uri, Map<String, String> headers, Function<RestfulClientCallback, T> callback) {
         HttpGet req = new HttpGet();
         return this.send(req, uri, headers, callback);
     }
@@ -114,26 +125,21 @@ public class RestfulClient implements Restful {
         return HttpClientFactory.createSSLFromHost(host);
     }
 
-    private static boolean isUnavailable(int statusCode) {
-        return statusCode == HttpURLConnection.HTTP_UNAVAILABLE;
-    }
-
-    private static boolean isServerError(int statusCode) {
-        return statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR;
-    }
-
-    private static boolean isSuccess(int statusCode) {
-        return 200 <= statusCode && statusCode <= 299;
-    }
-
-    private <T> T send(HttpRequestBase req, String uri, Map<String, String> headers, Function<byte[], T> callback) {
-        byte[] resp = this.send(req, uri, headers);
-        return callback.apply(resp);
-    }
-
-    private byte[] send(HttpRequestBase req, String uri, Map<String, String> headers) {
-        Optional.ofNullable(headers).ifPresent(it -> it.forEach(req::setHeader));
+    private <T> T send(HttpRequestBase req, String uri, Map<String, String> headers, Function<RestfulClientCallback, T> callback) {
         req.setURI(URI.create(uri));
+
+        byte[] resp = this.send(req, headers);
+        RestfulClientCallback restfulClientCallback = new RestfulClientCallback(
+                req.getMethod(),
+                req.getURI().toString(),
+                headers,
+                resp
+        );
+        return callback.apply(restfulClientCallback);
+    }
+
+    private byte[] send(HttpRequestBase req, Map<String, String> headers) {
+        Optional.ofNullable(headers).ifPresent(it -> it.forEach(req::setHeader));
 
         HttpClientContext context = HttpClientContext.create();
         Optional.ofNullable(this.requestConfig)
